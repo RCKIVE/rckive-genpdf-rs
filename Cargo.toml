@@ -16,9 +16,18 @@ license = "Apache-2.0 OR MIT"
 exclude = [".builds/*"]
 readme = "README.md"
 
+[[example]]
+name = "images"
+required-features = ["images"]
+
 [dependencies]
 lopdf = "0.26"
 rusttype = "0.8"
+
+[dependencies.image]
+version = "0.23.12"
+default-features = false
+optional = true
 
 [dependencies.hyphenation]
 version = "0.8"
@@ -36,6 +45,10 @@ features = ["add", "add_assign", "from", "into", "mul", "mul_assign", "sum"]
 [dev-dependencies.hyphenation]
 version = "0.8"
 features = ["embed_en-us"]
+
+[features]
+default = []
+images = ["image", "printpdf/embedded_images"]
 
 [package.metadata.docs.rs]
 all-features = true

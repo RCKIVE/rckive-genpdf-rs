@@ -15,6 +15,7 @@
 
 use std::env;
 
+use genpdf::Alignment;
 use genpdf::Element as _;
 use genpdf::{elements, fonts, style};
 
@@ -60,8 +61,7 @@ fn main() {
         let mut layout = elements::LinearLayout::vertical();
         if page > 1 {
             layout.push(
-                elements::Paragraph::new(format!("Page {}", page))
-                    .aligned(elements::Alignment::Center),
+                elements::Paragraph::new(format!("Page {}", page)).aligned(Alignment::Center),
             );
             layout.push(elements::Break::new(1));
         }
@@ -86,7 +86,7 @@ fn main() {
 
     doc.push(
         elements::Paragraph::new("genpdf Demo Document")
-            .aligned(elements::Alignment::Center)
+            .aligned(Alignment::Center)
             .styled(style::Style::new().bold().with_font_size(20)),
     );
     doc.push(elements::Break::new(1.5));
@@ -183,9 +183,7 @@ fn main() {
     doc.push(elements::Paragraph::new(
         "You already saw lists and formatted centered text. Here are some other examples:",
     ));
-    doc.push(
-        elements::Paragraph::new("This is right-aligned text.").aligned(elements::Alignment::Right),
-    );
+    doc.push(elements::Paragraph::new("This is right-aligned text.").aligned(Alignment::Right));
     doc.push(
         elements::Paragraph::new("And this paragraph has a frame drawn around it and is colored.")
             .padded(genpdf::Margins::vh(0, 1))
@@ -205,6 +203,12 @@ fn main() {
             .styled(style::Style::new().with_font_size(16)),
     );
     doc.push(elements::Break::new(1.5));
+
+    doc.push(elements::Paragraph::new(
+        "Embedding images also works using the 'images' feature.",
+    ));
+    #[cfg(feature = "images")]
+    images::do_image_test(&mut doc);
 
     doc.push(elements::Paragraph::new("Here is an example table:"));
 
@@ -294,4 +298,33 @@ fn main() {
 
     doc.render_to_file(output_file)
         .expect("Failed to write output file");
+}
+
+// Only import the images if the feature is enabled. This helps verify our handling of feature toggles.
+#[cfg(feature = "images")]
+mod images {
+    use super::*;
+
+    const IMAGE_PATH_JPG: &'static str = "examples/images/test_image.jpg";
+
+    pub fn do_image_test(doc: &mut genpdf::Document) {
+        doc.push(elements::Paragraph::new(
+            "Here is an example image with default position/scale:",
+        ));
+        doc.push(elements::Image::from_path(IMAGE_PATH_JPG).expect("Unable to load image"));
+        doc.push(elements::Paragraph::new(
+            "and here is one that is centered, rotated, and scaled some.",
+        ));
+        doc.push(
+            elements::Image::from_path(IMAGE_PATH_JPG)
+                .expect("Unable to load image")
+                .with_alignment(Alignment::Center)
+                .with_scale(genpdf::Scale::new(0.5, 2))
+                .with_clockwise_rotation(45.0),
+        );
+        doc.push(elements::Paragraph::new(
+            "For a full example of image functionality, please see images.pdf.",
+        ));
+        doc.push(elements::Break::new(1.5));
+    }
 }

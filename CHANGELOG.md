@@ -34,6 +34,7 @@ SPDX-License-Identifier: CC0-1.0
 - Change the return type of `render::Area::text_section` from `Result<_, ()>`
   to  `Option<_>`.
 - Bump the MSRV to 1.45.0.
+- Move `Alignment` struct out of `elements` module.
 
 ## Non-Breaking Changes
 
@@ -49,6 +50,7 @@ SPDX-License-Identifier: CC0-1.0
 - Add support for kerning and add the `Font::kerning` and `Font::glyph_ids`
   methods.
 - Add the `error::Context` trait for easier error generation.
+- Add support for `Image` as a possible insertable element.
 
 ## Bug Fixes
 

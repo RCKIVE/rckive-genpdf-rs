@@ -53,19 +53,22 @@ For more information, see the [API documentation](https://docs.rs/genpdf).
 - Layout of elements sequentially or in tables
 - Rudimentary support for shapes
 - Page headers and custom page decorations
+- Embedding images (scale, position, rotate).
 
 ## Cargo Features
 
 This crate has the following Cargo features (deactivated per default):
+
+- `images`: Adds support for embedding images using the [`image`][] crate.
 - `hyphenation`:  Adds support for hyphenation using the [`hyphenation`][] crate.
 
 [`hyphenation`]: https://lib.rs/crates/hyphenation
+[`image`]: https://lib.rs/crates/image
 
 ## Roadmap
 
 These features are currently not supported but planned for future versions:
 - Improved support for drawing shapes
-- Images
 - Advanced text formatting
 
 See also the [`genpdf-rs` issue tracker](https://todo.sr.ht/~ireas/genpdf-rs).
