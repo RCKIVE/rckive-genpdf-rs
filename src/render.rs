@@ -334,7 +334,7 @@ impl<'a> Area<'a> {
         style: Style,
         s: S,
     ) -> Result<bool, Error> {
-        if let Ok(mut section) = self.text_section(font_cache, position, style) {
+        if let Some(mut section) = self.text_section(font_cache, position, style) {
             section.print_str(s, style)?;
             Ok(true)
         } else {
@@ -342,8 +342,7 @@ impl<'a> Area<'a> {
         }
     }
 
-    /// Creates a new text section at the given position or returns an error if the text section
-    /// does not fit in this area.
+    /// Creates a new text section at the given position if the text section fits in this area.
     ///
     /// The given style is only used to calculate the line height of the section.  The position is
     /// relative to the upper left corner of the area.  The font cache must contain the PDF font
@@ -353,7 +352,7 @@ impl<'a> Area<'a> {
         font_cache: &'f fonts::FontCache,
         position: Position,
         style: Style,
-    ) -> Result<TextSection<'_, 'f, 'a>, ()> {
+    ) -> Option<TextSection<'_, 'f, 'a>> {
         TextSection::new(font_cache, self, position, style)
     }
 
@@ -384,11 +383,11 @@ impl<'a, 'f, 'l> TextSection<'a, 'f, 'l> {
         area: &'a Area<'l>,
         position: Position,
         style: Style,
-    ) -> Result<TextSection<'a, 'f, 'l>, ()> {
+    ) -> Option<TextSection<'a, 'f, 'l>> {
         let height = style.font(font_cache).glyph_height(style.font_size());
 
         if position.y + height > area.size.height {
-            return Err(());
+            return None;
         }
 
         let line_height = style.line_height(font_cache);
@@ -405,7 +404,7 @@ impl<'a, 'f, 'l> TextSection<'a, 'f, 'l> {
         section
             .layer()
             .set_text_cursor(cursor.x.into(), (cursor.y - height).into());
-        Ok(section)
+        Some(section)
     }
 
     /// Tries to add a new line and returns `true` if the area was large enough to fit the new
