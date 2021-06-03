@@ -31,6 +31,7 @@ SPDX-License-Identifier: CC0-1.0
 - Remove the `Document::set_margins` method (use a `PageDecorator` instead).
 - Replace the `PdfprintError` variant of `ErrorKind` with `PdfError` and
   `PdfIndexError`.
+- Bump the MSRV to 1.45.0.
 
 ## Non-Breaking Changes
 

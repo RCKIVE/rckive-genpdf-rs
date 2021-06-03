@@ -91,7 +91,7 @@ See also the [`genpdf-rs` issue tracker](https://todo.sr.ht/~ireas/genpdf-rs).
 
 ## Minimum Supported Rust Version
 
-This crate supports at least Rust 1.40.0 or later.
+This crate supports at least Rust 1.45.0 or later.
 
 ## Contributing
 
