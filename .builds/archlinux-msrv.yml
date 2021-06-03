@@ -13,8 +13,8 @@ tasks:
       rustc -V
   - build: |
       cd genpdf-rs
-      cargo build --release
-      cargo build --release --all-features
+      cargo build --release --all-targets
+      cargo build --release --all-targets --all-features
   - test: |
       cd genpdf-rs
       cargo test --all-features
