@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: CC0-1.0
 
 //! This example generates a demo PDF document and writes it to the path that was passed as the
-//! first command-line argument.  You may have to adapt the `FONT_DIR`, `DEFAULT_FONT_NAME` and
+//! first command-line argument.  You may have to adapt the `FONT_DIRS`, `DEFAULT_FONT_NAME` and
 //! `MONO_FONT_NAME` constants for your system so that these files exist:
 //! - `{FONT_DIR}/{name}-Regular.ttf`
 //! - `{FONT_DIR}/{name}-Bold.ttf`
@@ -18,7 +18,10 @@ use std::env;
 use genpdf::Element as _;
 use genpdf::{elements, fonts, style};
 
-const FONT_DIR: &'static str = "/usr/share/fonts/truetype/liberation";
+const FONT_DIRS: &[&str] = &[
+    "/usr/share/fonts/liberation",
+    "/usr/share/fonts/truetype/liberation",
+];
 const DEFAULT_FONT_NAME: &'static str = "LiberationSans";
 const MONO_FONT_NAME: &'static str = "LiberationMono";
 const LOREM_IPSUM: &'static str =
@@ -35,10 +38,15 @@ fn main() {
     }
     let output_file = &args[0];
 
+    let font_dir = FONT_DIRS
+        .iter()
+        .filter(|path| std::path::Path::new(path).exists())
+        .next()
+        .expect("Could not find font directory");
     let default_font =
-        fonts::from_files(FONT_DIR, DEFAULT_FONT_NAME, Some(fonts::Builtin::Helvetica))
+        fonts::from_files(font_dir, DEFAULT_FONT_NAME, Some(fonts::Builtin::Helvetica))
             .expect("Failed to load the default font family");
-    let monospace_font = fonts::from_files(FONT_DIR, MONO_FONT_NAME, Some(fonts::Builtin::Courier))
+    let monospace_font = fonts::from_files(font_dir, MONO_FONT_NAME, Some(fonts::Builtin::Courier))
         .expect("Failed to load the monospace font family");
 
     let mut doc = genpdf::Document::new(default_font);
