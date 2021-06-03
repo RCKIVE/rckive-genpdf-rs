@@ -10,8 +10,8 @@
 //! - `{FONT_DIR}/{name}-BoldItalic.ttf`
 //! for `name` in {`DEFAULT_FONT_NAME`, `MONO_FONT_NAME`}.
 //!
-//! The generated document should be identical to the `examples/demo.pdf` document that is shipped
-//! with the crate.
+//! The generated document using the latest `genpdf-rs` release is available
+//! [here](https://genpdf-rs.ireas.org/examples/demo.pdf).
 
 use std::env;
 

@@ -40,7 +40,7 @@ For a complete example with all supported elements, see the
 [`examples/demo.rs`][] file that generates [this PDF document][].
 
 [`examples/demo.rs`]: https://git.sr.ht/~ireas/genpdf-rs/tree/master/examples/demo.rs
-[this PDF document]: https://git.sr.ht/~ireas/genpdf-rs/blob/master/examples/demo.pdf
+[this PDF document]: https://genpdf-rs.ireas.org/examples/demo.pdf
 
 For more information, see the [API documentation](https://docs.rs/genpdf).
 
