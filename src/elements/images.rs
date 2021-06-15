@@ -278,3 +278,246 @@ fn bounding_box_offset_and_size(rotation: &Rotation, size: &Size) -> (Position, 
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::bounding_box_offset_and_size;
+    use crate::{Position, Rotation, Size};
+    use float_cmp::approx_eq;
+
+    // TODO: reduce EPSILON and ulps
+    macro_rules! assert_approx_eq {
+        ($typ:ty, $lhs:expr, $rhs:expr) => {
+            let left = $lhs;
+            let right = $rhs;
+            assert!(
+                approx_eq!($typ, left, right, epsilon = 100.0 * f64::EPSILON, ulps = 10),
+                "assertion failed: `(left approx_eq right)`
+  left: `{:?}`,
+ right: `{:?}`",
+                left,
+                right
+            );
+        };
+    }
+
+    fn test_position(size: Size, rotation: f64, position: Position) {
+        println!("rotation = {}", rotation);
+        let rotation = Rotation::from(rotation);
+        assert_approx_eq!(
+            Position,
+            position,
+            bounding_box_offset_and_size(&rotation, &size).0
+        );
+    }
+
+    #[test]
+    fn test_bounding_box_size_square_0_deg() {
+        let size = Size::new(100, 100);
+        for rotation in &[-180.0, -90.0, 0.0, 90.0, 180.0] {
+            println!("rotation = {}", rotation);
+            let rotation = Rotation::from(*rotation);
+            assert_approx_eq!(Size, size, bounding_box_offset_and_size(&rotation, &size).1);
+        }
+    }
+
+    #[test]
+    fn test_bounding_box_size_square_30_deg() {
+        let size = Size::new(100, 100);
+        let bb_width = (60.0f64.to_radians().sin() + 30.0f64.to_radians().sin()) * size.width.0;
+        let bb_size = Size::new(bb_width, bb_width);
+        // TODO: -30, -60 fails
+        for rotation in &[-150.0, -120.0, 30.0, 60.0, 120.0, 150.0] {
+            println!("rotation = {}", rotation);
+            let rotation = Rotation::from(*rotation);
+            assert_approx_eq!(
+                Size,
+                bb_size,
+                bounding_box_offset_and_size(&rotation, &size).1
+            );
+        }
+    }
+
+    #[test]
+    fn test_bounding_box_size_square_45_deg() {
+        let size = Size::new(100, 100);
+        let bb_width = (2.0f64 * size.width.0.powf(2.0)).sqrt();
+        let bb_size = Size::new(bb_width, bb_width);
+        // TODO: -45 fails
+        for rotation in &[-135.0, 45.0, 135.0] {
+            println!("rotation = {}", rotation);
+            let rotation = Rotation::from(*rotation);
+            assert_approx_eq!(
+                Size,
+                bb_size,
+                bounding_box_offset_and_size(&rotation, &size).1
+            );
+        }
+    }
+
+    #[test]
+    fn test_bounding_box_position_square_30_deg() {
+        let size = Size::new(100, 100);
+        let bb_width =
+            30.0f64.to_radians().sin() * size.width.0 + 60.0f64.to_radians().sin() * size.height.0;
+
+        let w30 = 30.0f64.to_radians().cos() * size.width.0;
+        let w60 = 60.0f64.to_radians().cos() * size.width.0;
+
+        test_position(size, -150.0, Position::new(w30, 0));
+        test_position(size, -120.0, Position::new(w60, 0));
+        test_position(size, -60.0, Position::new(0, w60));
+        test_position(size, -30.0, Position::new(0, w30));
+        test_position(size, 30.0, Position::new(w60, bb_width));
+        test_position(size, 60.0, Position::new(w30, bb_width));
+        test_position(size, 120.0, Position::new(bb_width, bb_width - w60));
+        test_position(size, 150.0, Position::new(bb_width, bb_width - w30));
+    }
+
+    #[test]
+    fn test_bounding_box_position_square_45_deg() {
+        let size = Size::new(100, 100);
+        let bb_width = (2.0f64 * size.width.0.powf(2.0)).sqrt();
+
+        test_position(size, -135.0, Position::new(bb_width / 2.0, 0));
+        test_position(size, -45.0, Position::new(0, bb_width / 2.0));
+        test_position(size, 45.0, Position::new(bb_width / 2.0, bb_width));
+        test_position(size, 135.0, Position::new(bb_width, bb_width / 2.0));
+    }
+
+    #[test]
+    fn test_bounding_box_position_square_90_deg() {
+        let size = Size::new(100, 100);
+        test_position(size, -180.0, Position::new(100, 0));
+        test_position(size, -90.0, Position::new(0, 0));
+        test_position(size, 0.0, Position::new(0, 100));
+        test_position(size, 90.0, Position::new(100, 100));
+        test_position(size, 180.0, Position::new(100, 0));
+    }
+
+    #[test]
+    fn test_bounding_box_size_rectangle_0_deg() {
+        let size = Size::new(200, 100);
+        for rotation in &[-180.0, 0.0, 180.0] {
+            println!("rotation = {}", rotation);
+            let rotation = Rotation::from(*rotation);
+            assert_approx_eq!(Size, size, bounding_box_offset_and_size(&rotation, &size).1);
+        }
+    }
+
+    #[test]
+    fn test_bounding_box_size_rectangle_30_deg() {
+        let size = Size::new(200, 100);
+        let bb_width =
+            60.0f64.to_radians().sin() * size.width.0 + 30.0f64.to_radians().sin() * size.height.0;
+        let bb_height =
+            60.0f64.to_radians().sin() * size.height.0 + 30.0f64.to_radians().sin() * size.width.0;
+        let bb_size = Size::new(bb_width, bb_height);
+        // TODO: -30 fails
+        for rotation in &[-150.0, 30.0, 150.0] {
+            println!("rotation = {}", rotation);
+            let rotation = Rotation::from(*rotation);
+            assert_approx_eq!(
+                Size,
+                bb_size,
+                bounding_box_offset_and_size(&rotation, &size).1
+            );
+        }
+    }
+
+    #[test]
+    fn test_bounding_box_size_rectangle_45_deg() {
+        let size = Size::new(200, 100);
+        let bb_width = 45.0f64.to_radians().sin() * (size.width.0 + size.height.0);
+        let bb_size = Size::new(bb_width, bb_width);
+        // TODO: -45 fails
+        for rotation in &[-135.0, 45.0, 135.0] {
+            println!("rotation = {}", rotation);
+            let rotation = Rotation::from(*rotation);
+            assert_approx_eq!(
+                Size,
+                bb_size,
+                bounding_box_offset_and_size(&rotation, &size).1
+            );
+        }
+    }
+
+    #[test]
+    fn test_bounding_box_size_rectangle_60_deg() {
+        let size = Size::new(200, 100);
+        let bb_width =
+            30.0f64.to_radians().sin() * size.width.0 + 60.0f64.to_radians().sin() * size.height.0;
+        let bb_height =
+            30.0f64.to_radians().sin() * size.height.0 + 60.0f64.to_radians().sin() * size.width.0;
+        let bb_size = Size::new(bb_width, bb_height);
+        // TODO: -60 fails
+        for rotation in &[-120.0, 60.0, 120.0] {
+            println!("rotation = {}", rotation);
+            let rotation = Rotation::from(*rotation);
+            assert_approx_eq!(
+                Size,
+                bb_size,
+                bounding_box_offset_and_size(&rotation, &size).1
+            );
+        }
+    }
+
+    #[test]
+    fn test_bounding_box_size_rectangle_90_deg() {
+        let size = Size::new(200, 100);
+        let bb_size = Size::new(100, 200);
+        for rotation in &[-90.0, 90.0] {
+            println!("rotation = {}", rotation);
+            let rotation = Rotation::from(*rotation);
+            assert_approx_eq!(
+                Size,
+                bb_size,
+                bounding_box_offset_and_size(&rotation, &size).1
+            );
+        }
+    }
+
+    #[test]
+    fn test_bounding_box_position_rectangle_30_deg() {
+        let size = Size::new(200, 100);
+        let bb_width =
+            30.0f64.to_radians().sin() * size.width.0 + 60.0f64.to_radians().sin() * size.height.0;
+        let bb_height =
+            30.0f64.to_radians().sin() * size.height.0 + 60.0f64.to_radians().sin() * size.width.0;
+
+        let h30 = 30.0f64.to_radians().cos() * size.height.0;
+        let h60 = 60.0f64.to_radians().cos() * size.height.0;
+        let w30 = 30.0f64.to_radians().cos() * size.width.0;
+        let w60 = 60.0f64.to_radians().cos() * size.width.0;
+
+        test_position(size, -150.0, Position::new(w30, 0));
+        test_position(size, -120.0, Position::new(w60, 0));
+        test_position(size, -60.0, Position::new(0, h60));
+        test_position(size, -30.0, Position::new(0, h30));
+        test_position(size, 30.0, Position::new(h60, bb_width));
+        test_position(size, 60.0, Position::new(h30, bb_height));
+        test_position(size, 120.0, Position::new(bb_width, bb_height - h60));
+        test_position(size, 150.0, Position::new(bb_height, bb_width - h30));
+    }
+
+    #[test]
+    fn test_bounding_box_position_rectangle_45_deg() {
+        let size = Size::new(200, 100);
+        let bb_width = 45.0f64.to_radians().sin() * (size.width.0 + size.height.0);
+
+        test_position(size, -135.0, Position::new(2.0 * bb_width / 3.0, 0));
+        test_position(size, -45.0, Position::new(0, bb_width / 3.0));
+        test_position(size, 45.0, Position::new(bb_width / 3.0, bb_width));
+        test_position(size, 135.0, Position::new(bb_width, 2.0 * bb_width / 3.0));
+    }
+
+    #[test]
+    fn test_bounding_box_position_rectangle_90_deg() {
+        let size = Size::new(200, 100);
+        test_position(size, -180.0, Position::new(200, 0));
+        test_position(size, -90.0, Position::new(0, 0));
+        test_position(size, 0.0, Position::new(0, 100));
+        test_position(size, 90.0, Position::new(100, 200));
+        test_position(size, 180.0, Position::new(200, 0));
+    }
+}

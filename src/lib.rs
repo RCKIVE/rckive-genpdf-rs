@@ -966,6 +966,32 @@ impl Context {
 
 #[cfg(test)]
 mod tests {
+    impl float_cmp::ApproxEq for super::Mm {
+        type Margin = float_cmp::F64Margin;
+
+        fn approx_eq<M: Into<Self::Margin>>(self, other: Self, margin: M) -> bool {
+            self.0.approx_eq(other.0, margin)
+        }
+    }
+
+    impl float_cmp::ApproxEq for super::Size {
+        type Margin = float_cmp::F64Margin;
+
+        fn approx_eq<M: Into<Self::Margin>>(self, other: Self, margin: M) -> bool {
+            let margin = margin.into();
+            self.width.approx_eq(other.width, margin) && self.height.approx_eq(other.height, margin)
+        }
+    }
+
+    impl float_cmp::ApproxEq for super::Position {
+        type Margin = float_cmp::F64Margin;
+
+        fn approx_eq<M: Into<Self::Margin>>(self, other: Self, margin: M) -> bool {
+            let margin = margin.into();
+            self.x.approx_eq(other.x, margin) && self.y.approx_eq(other.y, margin)
+        }
+    }
+
     #[test]
     fn test_rotation() {
         use super::Rotation;
