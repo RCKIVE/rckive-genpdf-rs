@@ -148,7 +148,7 @@
 //! [`Style`]: style/struct.Style.html
 //! [`StyledString`]: style/struct.StyledString.html
 //! [`examples/demo.rs`]: https://git.sr.ht/~ireas/genpdf-rs/tree/master/examples/demo.rs
-//! [this PDF document]: https://git.sr.ht/~ireas/genpdf-rs/blob/master/examples/demo.pdf
+//! [this PDF document]: https://genpdf-rs.ireas.org/examples/demo.pdf
 //! [Windows-1252]: https://en.wikipedia.org/wiki/Windows-1252
 
 #![warn(missing_docs, rust_2018_idioms)]
