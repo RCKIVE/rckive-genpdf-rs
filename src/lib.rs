@@ -695,7 +695,7 @@ impl Document {
     /// [`LinearLayout`]: elements/struct.LinearLayout.html
     /// [`render`]: #method.render
     /// [`render_to_file`]: #method.render_to_file
-    pub fn push<E: Element + 'static>(&mut self, element: E) {
+    pub fn push<E: elements::IntoBoxedElement>(&mut self, element: E) {
         self.root.push(element);
     }
 

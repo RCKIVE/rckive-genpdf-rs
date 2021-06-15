@@ -56,6 +56,24 @@ use crate::{Alignment, Context, Element, Margins, Mm, Position, RenderResult, Si
 #[cfg(feature = "images")]
 pub use images::Image;
 
+/// Helper trait for creating boxed elements.
+pub trait IntoBoxedElement {
+    /// Creates a boxed element from this element.
+    fn into_boxed_element(self) -> Box<dyn Element>;
+}
+
+impl<E: Element + 'static> IntoBoxedElement for E {
+    fn into_boxed_element(self) -> Box<dyn Element> {
+        Box::new(self)
+    }
+}
+
+impl IntoBoxedElement for Box<dyn Element> {
+    fn into_boxed_element(self) -> Box<dyn Element> {
+        self
+    }
+}
+
 /// Arranges a list of elements sequentially.
 ///
 /// Currently, elements can only be arranged vertically.
@@ -97,12 +115,12 @@ impl LinearLayout {
     }
 
     /// Adds the given element to this layout.
-    pub fn push<E: Element + 'static>(&mut self, element: E) {
-        self.elements.push(Box::new(element));
+    pub fn push<E: IntoBoxedElement>(&mut self, element: E) {
+        self.elements.push(element.into_boxed_element());
     }
 
     /// Adds the given element to this layout and it returns the layout.
-    pub fn element<E: Element + 'static>(mut self, element: E) -> Self {
+    pub fn element<E: IntoBoxedElement>(mut self, element: E) -> Self {
         self.push(element);
         self
     }
@@ -1085,13 +1103,13 @@ impl<'a> TableLayoutRow<'a> {
     }
 
     /// Adds the given element to this row.
-    pub fn push_element<E: Element + 'static>(&mut self, element: E) {
-        self.elements.push(Box::new(element));
+    pub fn push_element<E: IntoBoxedElement>(&mut self, element: E) {
+        self.elements.push(element.into_boxed_element());
     }
 
     /// Adds the given element to this row and returns the row.
     #[must_use]
-    pub fn element<E: Element + 'static>(mut self, element: E) -> Self {
+    pub fn element<E: IntoBoxedElement>(mut self, element: E) -> Self {
         self.push_element(element);
         self
     }

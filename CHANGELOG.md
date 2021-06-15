@@ -3,6 +3,13 @@ SPDX-FileCopyrightText: 2020-2021 Robin Krahl <robin.krahl@ireas.org>
 SPDX-License-Identifier: CC0-1.0
 -->
 
+# Unreleased
+
+## Breaking Changes
+
+- Introduce the `IntoBoxedElement` trait and use it for the `push` and
+  `element` methods of `Document`, `LinearLayout` and `TableLayoutRow`.
+
 # v0.2.0 (2021-06-17)
 
 This release improves the font handling, adds support for embedding images and
