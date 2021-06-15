@@ -7,7 +7,7 @@ use std::path;
 
 use image::GenericImageView;
 
-use crate::error::{Context as _, Error};
+use crate::error::{Context as _, Error, ErrorKind};
 use crate::{render, style};
 use crate::{Alignment, Context, Element, Mm, Position, RenderResult, Rotation, Scale, Size};
 
@@ -20,7 +20,8 @@ use crate::{Alignment, Context, Element, Mm, Position, RenderResult, Rotation, S
 /// # Supported Formats
 ///
 /// All formats supported by the [`image`][] should be supported by this crate.  The BMP, JPEG and
-/// PNG formats are well tested and known to work.
+/// PNG formats are well tested and known to work.  Yet it is currently not possible to render
+/// images with transparency, see [`printpdf` issue #98][].
 ///
 /// Note that only the GIF, JPEG, PNG, PNM, TIFF and BMP formats are enabled by default.  If you
 /// want to use other formats, you have to add the `image` crate as a dependency and activate the
@@ -39,6 +40,7 @@ use crate::{Alignment, Context, Element, Mm, Position, RenderResult, Rotation, S
 ///
 /// [`image`]: https://lib.rs/crates/image
 /// [`printpdf::Image`]: https://docs.rs/printpdf/latest/printpdf/types/plugins/graphics/two_dimensional/image/struct.Image.html
+/// [`printpdf` issue #98]: https://github.com/fschutt/printpdf/issues/98
 #[derive(Clone)]
 pub struct Image {
     data: image::DynamicImage,
@@ -63,14 +65,21 @@ pub struct Image {
 
 impl Image {
     /// Creates a new image from an already loaded image.
-    pub fn from_dynamic_image(data: image::DynamicImage) -> Self {
-        Image {
-            data,
-            alignment: Alignment::default(),
-            position: None,
-            scale: Scale::default(),
-            rotation: Rotation::default(),
-            dpi: None,
+    pub fn from_dynamic_image(data: image::DynamicImage) -> Result<Self, Error> {
+        if data.color().has_alpha() {
+            Err(Error::new(
+                "Images with an alpha channel are not supported",
+                ErrorKind::InvalidData,
+            ))
+        } else {
+            Ok(Image {
+                data,
+                alignment: Alignment::default(),
+                position: None,
+                scale: Scale::default(),
+                rotation: Rotation::default(),
+                dpi: None,
+            })
         }
     }
 
@@ -85,7 +94,7 @@ impl Image {
             .context("Could not determine image format")?
             .decode()
             .context("Could not decode image")?;
-        Ok(Self::from_dynamic_image(image))
+        Self::from_dynamic_image(image)
     }
 
     /// Creates a new image from the given reader.
