@@ -17,6 +17,9 @@ SPDX-License-Identifier: CC0-1.0
   - Remove the `style` argument from `CellDecorator::decorate_cell`.
   - Change the `Style` argument for `Area::draw_line` to `LineStyle`.
   - Change `Element::framed` to take the line style as an argument.
+- Refactor the `render` module:
+  - Change the `Layer`, `Area` and `TextSection` lifetimes.
+  - Store a reference to the current `Page` in `Layer`.
 
 ## Non-Breaking Changes
 

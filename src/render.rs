@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2020 Robin Krahl <robin.krahl@ireas.org>
+// SPDX-FileCopyrightText: 2020-2021 Robin Krahl <robin.krahl@ireas.org>
 // SPDX-License-Identifier: Apache-2.0 or MIT
 
 //! Low-level PDF rendering utilities.
@@ -148,7 +148,7 @@ pub struct Page {
     page: printpdf::PdfPageReference,
     size: Size,
     // invariant: layers.len() >= 1
-    layers: Vec<Layer>,
+    layers: Vec<printpdf::PdfLayerReference>,
 }
 
 impl Page {
@@ -160,14 +160,14 @@ impl Page {
         Page {
             page,
             size,
-            layers: vec![Layer::new(layer, size)],
+            layers: vec![layer],
         }
     }
 
     /// Adds a new layer with the given name to the page.
     pub fn add_layer(&mut self, name: impl Into<String>) {
         let layer = self.page.add_layer(name);
-        self.layers.push(Layer::new(layer, self.size));
+        self.layers.push(layer);
     }
 
     /// Returns the number of layers on this page.
@@ -176,18 +176,22 @@ impl Page {
     }
 
     /// Returns a layer of this page.
-    pub fn get_layer(&self, idx: usize) -> Option<&Layer> {
-        self.layers.get(idx)
+    pub fn get_layer(&self, idx: usize) -> Option<Layer<'_>> {
+        self.layers.get(idx).map(|layer| self.make_layer(layer))
     }
 
     /// Returns the first layer of this page.
-    pub fn first_layer(&self) -> &Layer {
-        &self.layers[0]
+    pub fn first_layer(&self) -> Layer<'_> {
+        self.make_layer(&self.layers[0])
     }
 
     /// Returns the last layer of this page.
-    pub fn last_layer(&self) -> &Layer {
-        &self.layers[self.layers.len() - 1]
+    pub fn last_layer(&self) -> Layer<'_> {
+        self.make_layer(&self.layers[self.layers.len() - 1])
+    }
+
+    fn make_layer(&self, layer: &printpdf::PdfLayerReference) -> Layer<'_> {
+        Layer::new(self, layer.clone())
     }
 }
 
@@ -196,25 +200,26 @@ impl Page {
 /// This is a wrapper around a [`printpdf::PdfLayerReference`][].
 ///
 /// [`printpdf::PdfLayerReference`]: https://docs.rs/printpdf/0.3.2/printpdf/types/pdf_layer/struct.PdfLayerReference.html
-pub struct Layer {
+#[derive(Clone)]
+pub struct Layer<'p> {
+    page: &'p Page,
     layer: printpdf::PdfLayerReference,
-    size: Size,
 }
 
-impl Layer {
-    fn new(layer: printpdf::PdfLayerReference, size: Size) -> Layer {
-        Layer { layer, size }
+impl<'p> Layer<'p> {
+    fn new(page: &'p Page, layer: printpdf::PdfLayerReference) -> Layer<'p> {
+        Layer { page, layer }
     }
 
     /// Returns a drawable area for this layer.
-    pub fn area(&self) -> Area<'_> {
-        Area::new(self, Position::default(), self.size)
+    pub fn area(&self) -> Area<'p> {
+        Area::new(self.clone(), Position::default(), self.page.size)
     }
 
     /// Transforms the given position that is relative to the upper left corner of the layer to a
     /// position that is relative to the lower left corner of the layer (as used by `printpdf`).
     fn transform_position(&self, mut position: Position) -> Position {
-        position.y = self.size.height - position.y;
+        position.y = self.page.size.height - position.y;
         position
     }
 }
@@ -226,14 +231,14 @@ impl Layer {
 ///
 /// [`printpdf::PdfLayerReference`]: https://docs.rs/printpdf/0.3.2/printpdf/types/pdf_layer/struct.PdfLayerReference.html
 #[derive(Clone)]
-pub struct Area<'a> {
-    layer: &'a Layer,
+pub struct Area<'p> {
+    layer: Layer<'p>,
     origin: Position,
     size: Size,
 }
 
-impl<'a> Area<'a> {
-    fn new(layer: &'a Layer, origin: Position, size: Size) -> Area<'a> {
+impl<'p> Area<'p> {
+    fn new(layer: Layer<'p>, origin: Position, size: Size) -> Area<'p> {
         Area {
             layer,
             origin,
@@ -284,7 +289,7 @@ impl<'a> Area<'a> {
     /// The returned vector has the same number of elements as the provided slice.  The width of
     /// the *i*-th area is *width \* weights[i] / total_weight*, where *width* is the width of this
     /// area, and *total_weight* is the sum of all given weights.
-    pub fn split_horizontally(&self, weights: &[usize]) -> Vec<Area<'a>> {
+    pub fn split_horizontally(&self, weights: &[usize]) -> Vec<Area<'p>> {
         let total_weight: usize = weights.iter().sum();
         let factor = self.size.width / total_weight as f64;
         let widths = weights.iter().map(|weight| factor * *weight as f64);
@@ -385,8 +390,8 @@ impl<'a> Area<'a> {
         font_cache: &'f fonts::FontCache,
         position: Position,
         style: Style,
-    ) -> Option<TextSection<'_, 'f, 'a>> {
-        TextSection::new(font_cache, self, position, style)
+    ) -> Option<TextSection<'f, 'p>> {
+        TextSection::new(font_cache, self.clone(), position, style)
     }
 
     /// Transforms the given position that is relative to the upper left corner of the area to a
@@ -402,21 +407,21 @@ impl<'a> Area<'a> {
 }
 
 /// A text section that is drawn on an area of a PDF layer.
-pub struct TextSection<'a, 'f, 'l> {
+pub struct TextSection<'f, 'p> {
     font_cache: &'f fonts::FontCache,
-    area: &'a Area<'l>,
+    area: Area<'p>,
     line_height: Mm,
     cursor: Position,
     fill_color: Option<Color>,
 }
 
-impl<'a, 'f, 'l> TextSection<'a, 'f, 'l> {
+impl<'f, 'p> TextSection<'f, 'p> {
     fn new(
         font_cache: &'f fonts::FontCache,
-        area: &'a Area<'l>,
+        area: Area<'p>,
         position: Position,
         style: Style,
-    ) -> Option<TextSection<'a, 'f, 'l>> {
+    ) -> Option<TextSection<'f, 'p>> {
         let height = style.font(font_cache).glyph_height(style.font_size());
 
         if position.y + height > area.size.height {
@@ -433,7 +438,7 @@ impl<'a, 'f, 'l> TextSection<'a, 'f, 'l> {
         };
         section.layer().begin_text_section();
         section.layer().set_line_height(line_height.into());
-        let cursor = area.transform_position(position);
+        let cursor = section.area.transform_position(position);
         section
             .layer()
             .set_text_cursor(cursor.x.into(), (cursor.y - height).into());
@@ -494,7 +499,7 @@ impl<'a, 'f, 'l> TextSection<'a, 'f, 'l> {
     }
 }
 
-impl<'a, 'f, 'l> Drop for TextSection<'a, 'f, 'l> {
+impl<'f, 'p> Drop for TextSection<'f, 'p> {
     fn drop(&mut self) {
         if self.fill_color.is_some() {
             self.layer().set_fill_color(Color::Rgb(0, 0, 0).into());
