@@ -1,9 +1,15 @@
 <!---
-SPDX-FileCopyrightText: 2020 Robin Krahl <robin.krahl@ireas.org>
+SPDX-FileCopyrightText: 2020-2021 Robin Krahl <robin.krahl@ireas.org>
 SPDX-License-Identifier: CC0-1.0
 -->
 
-# Unreleased
+# v0.2.0 (2021-06-17)
+
+This release improves the font handling, adds support for embedding images and
+contains many small improvements and bugfixes.
+
+Thanks to Alexander Dean-Kennedy for implementing the images support and to
+Scott Steele for contributing a bug fix.
 
 ## Breaking Changes
 
