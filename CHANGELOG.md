@@ -27,6 +27,8 @@ SPDX-License-Identifier: CC0-1.0
   `UnorderedList`, `OrderedList` and `TableLayoutRow`.
 - Implement `std::iter::FromIterator` for `UnorderedList` and `OrderedList`.
 - Add the `minimal` example that produces a minimal PDF document.
+- Add the `Layer::next` and `Area::next_layer` methods for accessing the next
+  layer of a page.
 
 # v0.2.0 (2021-06-17)
 

@@ -18,6 +18,7 @@
 //! [`Area`]: struct.Area.html
 //! [`TextSection`]: struct.TextSection.html
 
+use std::cell;
 use std::io;
 
 use crate::error::{Context as _, Error, ErrorKind};
@@ -147,8 +148,7 @@ impl Renderer {
 pub struct Page {
     page: printpdf::PdfPageReference,
     size: Size,
-    // invariant: layers.len() >= 1
-    layers: Vec<printpdf::PdfLayerReference>,
+    layers: Layers,
 }
 
 impl Page {
@@ -160,7 +160,7 @@ impl Page {
         Page {
             page,
             size,
-            layers: vec![layer],
+            layers: Layers::new(layer),
         }
     }
 
@@ -177,21 +177,64 @@ impl Page {
 
     /// Returns a layer of this page.
     pub fn get_layer(&self, idx: usize) -> Option<Layer<'_>> {
-        self.layers.get(idx).map(|layer| self.make_layer(layer))
+        self.layers.get(idx).map(|l| Layer::new(self, l))
     }
 
     /// Returns the first layer of this page.
     pub fn first_layer(&self) -> Layer<'_> {
-        self.make_layer(&self.layers[0])
+        Layer::new(self, self.layers.first())
     }
 
     /// Returns the last layer of this page.
     pub fn last_layer(&self) -> Layer<'_> {
-        self.make_layer(&self.layers[self.layers.len() - 1])
+        Layer::new(self, self.layers.last())
     }
 
-    fn make_layer(&self, layer: &printpdf::PdfLayerReference) -> Layer<'_> {
-        Layer::new(self, layer.clone())
+    fn next_layer(&self, layer: &printpdf::PdfLayerReference) -> Layer<'_> {
+        let layer = self.layers.next(layer).unwrap_or_else(|| {
+            let layer = self.page.add_layer(format!("Layer {}", self.layers.len() + 1));
+            self.layers.push(layer.clone());
+            layer
+        });
+        Layer::new(self, layer)
+    }
+}
+
+#[derive(Debug)]
+struct Layers(cell::RefCell<Vec<printpdf::PdfLayerReference>>);
+
+impl Layers {
+    pub fn new(layer: printpdf::PdfLayerReference) -> Self {
+        Self(vec![layer].into())
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.borrow().len()
+    }
+
+    pub fn first(&self) -> printpdf::PdfLayerReference {
+        self.0.borrow().first().unwrap().clone()
+    }
+
+    pub fn last(&self) -> printpdf::PdfLayerReference {
+        self.0.borrow().last().unwrap().clone()
+    }
+
+    pub fn get(&self, idx: usize) -> Option<printpdf::PdfLayerReference> {
+        self.0.borrow().get(idx).cloned()
+    }
+
+    pub fn push(&self, layer: printpdf::PdfLayerReference) {
+        self.0.borrow_mut().push(layer)
+    }
+
+    pub fn next(&self, layer: &printpdf::PdfLayerReference) -> Option<printpdf::PdfLayerReference> {
+        self.0
+            .borrow()
+            .iter()
+            .skip_while(|l| l.layer != layer.layer)
+            .nth(1)
+            .cloned()
     }
 }
 
@@ -209,6 +252,14 @@ pub struct Layer<'p> {
 impl<'p> Layer<'p> {
     fn new(page: &'p Page, layer: printpdf::PdfLayerReference) -> Layer<'p> {
         Layer { page, layer }
+    }
+
+    /// Returns the next layer of this page.
+    ///
+    /// If this layer is not the last layer, the existing next layer is used.  If it is the last
+    /// layer, a new layer is created and added to the page.
+    pub fn next(&self) -> Layer<'p> {
+        self.page.next_layer(&self.layer)
     }
 
     /// Returns a drawable area for this layer.
@@ -243,6 +294,19 @@ impl<'p> Area<'p> {
             layer,
             origin,
             size,
+        }
+    }
+
+    /// Returns a copy of this area on the next layer of the page.
+    ///
+    /// If this area is not on the last layer, the existing next layer is used.  If it is on the
+    /// last layer, a new layer is created and added to the page.
+    pub fn next_layer(&self) -> Self {
+        let layer = self.layer.next();
+        Self {
+            layer,
+            origin: self.origin,
+            size: self.size,
         }
     }
 
