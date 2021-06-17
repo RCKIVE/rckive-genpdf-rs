@@ -198,8 +198,8 @@ impl Element for Text {
 /// an [`Alignment`][] for the paragraph.
 ///
 /// Note that the line height and spacing is currently calculated based on the style of the entire
-/// paragraph.  If the font family or font size is changed in the [`Style`][] settings for a
-/// string, the line height and spacing might be incorrect.
+/// paragraph (for example set by [`Element::styled`]).  If the font family or font size is changed
+/// in the [`Style`][] settings for a string, the line height and spacing might be incorrect.
 ///
 /// # Examples
 ///
@@ -225,6 +225,7 @@ impl Element for Text {
 ///
 /// [`Style`]: ../style/struct.Style.html
 /// [`Alignment`]: ../enum.Alignment.html
+/// [`Element::styled`]: ../trait.Element.html#method.styled
 /// [`push`]: #method.push
 /// [`push_styled`]: #method.push_styled
 /// [`string`]: #method.string
