@@ -10,6 +10,12 @@ SPDX-License-Identifier: CC0-1.0
 - Introduce the `IntoBoxedElement` trait and use it for the `push` and
   `element` methods of `Document`, `LinearLayout` and `TableLayoutRow`.
 
+## Non-Breaking Changes
+
+- Implement `std::iter::Extend` for `Document`, `LinearLayout`,
+  `UnorderedList`, `OrderedList` and `TableLayoutRow`.
+- Implement `std::iter::FromIterator` for `UnorderedList` and `OrderedList`.
+
 # v0.2.0 (2021-06-17)
 
 This release improves the font handling, adds support for embedding images and

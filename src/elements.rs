@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2020 Robin Krahl <robin.krahl@ireas.org>
+// SPDX-FileCopyrightText: 2020-2021 Robin Krahl <robin.krahl@ireas.org>
 // SPDX-License-Identifier: Apache-2.0 or MIT
 
 //! Elements of a PDF document.
@@ -157,6 +157,13 @@ impl Element for LinearLayout {
     ) -> Result<RenderResult, Error> {
         // TODO: add horizontal layout
         self.render_vertical(context, area, style)
+    }
+}
+
+impl<E: IntoBoxedElement> iter::Extend<E> for LinearLayout {
+    fn extend<I: IntoIterator<Item = E>>(&mut self, iter: I) {
+        self.elements
+            .extend(iter.into_iter().map(|e| e.into_boxed_element()))
     }
 }
 
@@ -389,7 +396,7 @@ impl<T: Into<StyledString>> iter::Extend<T> for Paragraph {
 }
 
 impl<T: Into<StyledString>> iter::FromIterator<T> for Paragraph {
-    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Paragraph {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         let mut paragraph = Paragraph::default();
         paragraph.extend(iter);
         paragraph
@@ -750,6 +757,22 @@ impl Default for UnorderedList {
     }
 }
 
+impl<E: Element + 'static> iter::Extend<E> for UnorderedList {
+    fn extend<I: IntoIterator<Item = E>>(&mut self, iter: I) {
+        for element in iter {
+            self.push(element);
+        }
+    }
+}
+
+impl<E: Element + 'static> iter::FromIterator<E> for UnorderedList {
+    fn from_iter<I: IntoIterator<Item = E>>(iter: I) -> Self {
+        let mut list = Self::default();
+        list.extend(iter);
+        list
+    }
+}
+
 /// An ordered list of elements with arabic numbers.
 ///
 /// # Examples
@@ -828,6 +851,22 @@ impl Element for OrderedList {
 impl Default for OrderedList {
     fn default() -> OrderedList {
         OrderedList::new()
+    }
+}
+
+impl<E: Element + 'static> iter::Extend<E> for OrderedList {
+    fn extend<I: IntoIterator<Item = E>>(&mut self, iter: I) {
+        for element in iter {
+            self.push(element);
+        }
+    }
+}
+
+impl<E: Element + 'static> iter::FromIterator<E> for OrderedList {
+    fn from_iter<I: IntoIterator<Item = E>>(iter: I) -> Self {
+        let mut list = Self::default();
+        list.extend(iter);
+        list
     }
 }
 
@@ -1120,6 +1159,13 @@ impl<'a> TableLayoutRow<'a> {
     /// columns in the table.
     pub fn push(self) -> Result<(), Error> {
         self.table_layout.push_row(self.elements)
+    }
+}
+
+impl<'a, E: IntoBoxedElement> iter::Extend<E> for TableLayoutRow<'a> {
+    fn extend<I: IntoIterator<Item = E>>(&mut self, iter: I) {
+        self.elements
+            .extend(iter.into_iter().map(|e| e.into_boxed_element()))
     }
 }
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2020 Robin Krahl <robin.krahl@ireas.org>
+// SPDX-FileCopyrightText: 2020-2021 Robin Krahl <robin.krahl@ireas.org>
 // SPDX-License-Identifier: Apache-2.0 or MIT
 
 //! User-friendly PDF generator written in pure Rust.
@@ -742,6 +742,12 @@ impl Document {
         let file = fs::File::create(path)
             .with_context(|| format!("Could not create file {}", path.display()))?;
         self.render(file)
+    }
+}
+
+impl<E: elements::IntoBoxedElement> std::iter::Extend<E> for Document {
+    fn extend<I: IntoIterator<Item = E>>(&mut self, iter: I) {
+        self.root.extend(iter)
     }
 }
 
