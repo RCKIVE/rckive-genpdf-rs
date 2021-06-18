@@ -49,7 +49,7 @@ use std::mem;
 
 use crate::error::{Error, ErrorKind};
 use crate::render;
-use crate::style::{Style, StyledString};
+use crate::style::{LineStyle, Style, StyledString};
 use crate::wrap;
 use crate::{Alignment, Context, Element, Margins, Mm, Position, RenderResult, Size};
 
@@ -621,14 +621,22 @@ impl<E: Element> Element for StyledElement<E> {
 pub struct FramedElement<E: Element> {
     element: E,
     is_first: bool,
+    line_style: LineStyle,
 }
 
 impl<E: Element> FramedElement<E> {
     /// Creates a new framed element that wraps the given element.
     pub fn new(element: E) -> FramedElement<E> {
-        FramedElement {
-            element,
+        FramedElement::with_line_style(element, LineStyle::new())
+    }
+
+    /// Creates a new framed element that wraps the given element,
+    /// and with the given line style.
+    pub fn with_line_style(element: E, line_style: impl Into<LineStyle>) -> FramedElement<E> {
+        Self {
             is_first: true,
+            element,
+            line_style: line_style.into(),
         }
     }
 }
@@ -641,30 +649,39 @@ impl<E: Element> Element for FramedElement<E> {
         style: Style,
     ) -> Result<RenderResult, Error> {
         let result = self.element.render(context, area.clone(), style)?;
-        area.draw_line(
-            vec![Position::default(), Position::new(0, result.size.height)],
-            style,
-        );
-        area.draw_line(
-            vec![
-                Position::new(area.size().width, 0),
-                Position::new(area.size().width, result.size.height),
-            ],
-            style,
-        );
+
         if self.is_first {
             area.draw_line(
-                vec![Position::default(), Position::new(area.size().width, 0)],
-                style,
+                vec![
+                    Position::new(area.size().width, result.size.height),
+                    Position::new(area.size().width, 0),
+                    Position::default(),
+                    Position::new(0, result.size.height),
+                ],
+                self.line_style,
             );
         }
         if !result.has_more {
             area.draw_line(
                 vec![
+                    Position::default(),
                     Position::new(0, result.size.height),
                     Position::new(area.size().width, result.size.height),
+                    Position::new(area.size().width, 0),
                 ],
-                style,
+                self.line_style,
+            );
+        } else {
+            area.draw_line(
+                vec![Position::default(), Position::new(0, result.size.height)],
+                self.line_style,
+            );
+            area.draw_line(
+                vec![
+                    Position::new(area.size().width, 0),
+                    Position::new(area.size().width, result.size.height),
+                ],
+                self.line_style,
             );
         }
         self.is_first = false;
@@ -961,14 +978,7 @@ pub trait CellDecorator {
     }
 
     /// Styles the cell with the given indizes thas has been rendered within the given area.
-    fn decorate_cell(
-        &mut self,
-        column: usize,
-        row: usize,
-        has_more: bool,
-        area: render::Area<'_>,
-        style: Style,
-    );
+    fn decorate_cell(&mut self, column: usize, row: usize, has_more: bool, area: render::Area<'_>);
 }
 
 /// A cell decorator that draws frames around table cells.
@@ -983,6 +993,7 @@ pub struct FrameCellDecorator {
     inner: bool,
     outer: bool,
     cont: bool,
+    line_style: LineStyle,
     num_columns: usize,
     num_rows: usize,
     last_row: Option<usize>,
@@ -996,6 +1007,22 @@ impl FrameCellDecorator {
             inner,
             outer,
             cont,
+            ..Default::default()
+        }
+    }
+
+    /// Creates a new frame cell decorator with the given border settings, as well as a line style.
+    pub fn with_line_style(
+        inner: bool,
+        outer: bool,
+        cont: bool,
+        line_style: impl Into<LineStyle>,
+    ) -> FrameCellDecorator {
+        Self {
+            inner,
+            outer,
+            cont,
+            line_style: line_style.into(),
             ..Default::default()
         }
     }
@@ -1045,20 +1072,13 @@ impl CellDecorator for FrameCellDecorator {
         self.num_rows = num_rows;
     }
 
-    fn decorate_cell(
-        &mut self,
-        column: usize,
-        row: usize,
-        has_more: bool,
-        area: render::Area<'_>,
-        style: Style,
-    ) {
+    fn decorate_cell(&mut self, column: usize, row: usize, has_more: bool, area: render::Area<'_>) {
         let size = area.size();
 
         if self.print_left(column) {
             area.draw_line(
                 vec![Position::default(), Position::new(0, size.height)],
-                style,
+                self.line_style,
             );
         }
 
@@ -1068,14 +1088,14 @@ impl CellDecorator for FrameCellDecorator {
                     Position::new(size.width, 0),
                     Position::new(size.width, size.height),
                 ],
-                style,
+                self.line_style,
             );
         }
 
         if self.print_top(row) {
             area.draw_line(
                 vec![Position::default(), Position::new(size.width, 0)],
-                style,
+                self.line_style,
             );
         }
 
@@ -1085,7 +1105,7 @@ impl CellDecorator for FrameCellDecorator {
                     Position::new(0, size.height),
                     Position::new(size.width, size.height),
                 ],
-                style,
+                self.line_style,
             );
         }
 
@@ -1278,7 +1298,7 @@ impl TableLayout {
         if let Some(decorator) = &mut self.cell_decorator {
             for (i, mut area) in areas.into_iter().enumerate() {
                 area.set_height(row_height);
-                decorator.decorate_cell(i, self.render_idx, result.has_more, area, style);
+                decorator.decorate_cell(i, self.render_idx, result.has_more, area);
             }
         }
 

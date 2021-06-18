@@ -9,6 +9,13 @@ SPDX-License-Identifier: CC0-1.0
 
 - Introduce the `IntoBoxedElement` trait and use it for the `push` and
   `element` methods of `Document`, `LinearLayout` and `TableLayoutRow`.
+- Support setting the line thickness and color for `FramedElement` and
+  `FrameCellDecorator`:
+  - Add the `LineStyle` struct.
+  - Add the `FramedElement::with_line_style` and
+    `FrameCellDecorator::with_line_style` constructors.
+  - Remove the `style` argument from `CellDecorator::decorate_cell`.
+  - Change the `Style` argument for `Area::draw_line` to `LineStyle`.
 
 ## Non-Breaking Changes
 

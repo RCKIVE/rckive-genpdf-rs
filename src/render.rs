@@ -22,7 +22,7 @@ use std::io;
 
 use crate::error::{Context as _, Error, ErrorKind};
 use crate::fonts;
-use crate::style::{Color, Style};
+use crate::style::{Color, LineStyle, Style};
 use crate::{Margins, Mm, Position, Size};
 
 #[cfg(feature = "images")]
@@ -333,11 +333,10 @@ impl<'a> Area<'a> {
         );
     }
 
-    /// Draws a line with the given points and the given style.
+    /// Draws a line with the given points and the given line style.
     ///
-    /// Currently, this method only uses the color of the given style as the outline color (if set).
     /// The points are relative to the upper left corner of the area.
-    pub fn draw_line(&self, points: Vec<Position>, style: Style) {
+    pub fn draw_line(&self, points: Vec<Position>, line_style: LineStyle) {
         let line_points: Vec<_> = points
             .into_iter()
             .map(|pos| (self.transform_position(pos).into(), false))
@@ -349,13 +348,11 @@ impl<'a> Area<'a> {
             has_stroke: true,
             is_clipping_path: false,
         };
-        if let Some(color) = style.color() {
-            self.layer().set_outline_color(color.into());
-        }
+        self.layer()
+            .set_outline_thickness(printpdf::Pt::from(line_style.thickness()).0);
+        self.layer().set_outline_color(line_style.color().into());
+
         self.layer().add_shape(line);
-        if style.color().is_some() {
-            self.layer().set_outline_color(Color::Rgb(0, 0, 0).into());
-        }
     }
 
     /// Tries to draw the given string at the given position and returns `true` if the area was
