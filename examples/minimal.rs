@@ -43,7 +43,7 @@ fn main() {
     doc.set_title("genpdf Demo Document");
     doc.set_minimal_conformance();
     doc.set_line_spacing(1.25);
-    
+
     doc.push(elements::Text::new("Minimal PDF document"));
 
     doc.render_to_file(output_file)
