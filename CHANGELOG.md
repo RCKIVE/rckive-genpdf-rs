@@ -16,6 +16,7 @@ SPDX-License-Identifier: CC0-1.0
     `FrameCellDecorator::with_line_style` constructors.
   - Remove the `style` argument from `CellDecorator::decorate_cell`.
   - Change the `Style` argument for `Area::draw_line` to `LineStyle`.
+  - Change `Element::framed` to take the line style as an argument.
 
 ## Non-Breaking Changes
 

@@ -612,8 +612,8 @@ impl<E: Element> Element for StyledElement<E> {
 ///
 /// Using [`Element::framed`][]:
 /// ```
-/// use genpdf::{elements, Element as _};
-/// let p = elements::Paragraph::new("text").framed();
+/// use genpdf::{elements, style, Element as _};
+/// let p = elements::Paragraph::new("text").framed(style::LineStyle::new());
 /// ```
 ///
 /// [`Element::framed`]: ../trait.Element.html#method.framed

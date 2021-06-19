@@ -187,7 +187,7 @@ fn main() {
     doc.push(
         elements::Paragraph::new("And this paragraph has a frame drawn around it and is colored.")
             .padded(genpdf::Margins::vh(0, 1))
-            .framed()
+            .framed(style::LineStyle::from(style::Color::Rgb(0, 0, 255)).with_thickness(0.3))
             .styled(red),
     );
     doc.push(
@@ -249,7 +249,7 @@ fn main() {
                 .element(
                     elements::Paragraph::new("And frames!")
                         .padded(genpdf::Margins::vh(0, 1))
-                        .framed(),
+                        .framed(style::LineStyle::new()),
                 ),
         );
     table

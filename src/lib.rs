@@ -913,12 +913,12 @@ pub trait Element {
         style: style::Style,
     ) -> Result<RenderResult, error::Error>;
 
-    /// Draws a frame around this element.
-    fn framed(self) -> elements::FramedElement<Self>
+    /// Draws a frame around this element using the given line style.
+    fn framed(self, line_style: impl Into<style::LineStyle>) -> elements::FramedElement<Self>
     where
         Self: Sized,
     {
-        elements::FramedElement::new(self)
+        elements::FramedElement::with_line_style(self, line_style)
     }
 
     /// Adds a padding to this element.
