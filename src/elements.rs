@@ -650,39 +650,25 @@ impl<E: Element> Element for FramedElement<E> {
     ) -> Result<RenderResult, Error> {
         let result = self.element.render(context, area.clone(), style)?;
 
+        let top_left = Position::default();
+        let top_right = Position::new(area.size().width, 0);
+        let bottom_left = Position::new(0, result.size.height);
+        let bottom_right = Position::new(area.size().width, result.size.height);
+
         if self.is_first {
             area.draw_line(
-                vec![
-                    Position::new(area.size().width, result.size.height),
-                    Position::new(area.size().width, 0),
-                    Position::default(),
-                    Position::new(0, result.size.height),
-                ],
+                vec![bottom_right, top_right, top_left, bottom_left],
                 self.line_style,
             );
         }
         if !result.has_more {
             area.draw_line(
-                vec![
-                    Position::default(),
-                    Position::new(0, result.size.height),
-                    Position::new(area.size().width, result.size.height),
-                    Position::new(area.size().width, 0),
-                ],
+                vec![top_left, bottom_left, bottom_right, top_right],
                 self.line_style,
             );
         } else {
-            area.draw_line(
-                vec![Position::default(), Position::new(0, result.size.height)],
-                self.line_style,
-            );
-            area.draw_line(
-                vec![
-                    Position::new(area.size().width, 0),
-                    Position::new(area.size().width, result.size.height),
-                ],
-                self.line_style,
-            );
+            area.draw_line(vec![top_left, bottom_left], self.line_style);
+            area.draw_line(vec![top_right, bottom_right], self.line_style);
         }
         self.is_first = false;
         Ok(result)
