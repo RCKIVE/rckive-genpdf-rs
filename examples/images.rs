@@ -95,10 +95,10 @@ fn main() {
         let mut row = img_table
             .row()
             .element(elements::Paragraph::new(ftype).padded(1));
-        for scale in [1.0, 0.5, 2.0] {
+        for scale in &[1.0, 0.5, 2.0] {
             row.push_element(
                 img.clone()
-                    .with_scale(genpdf::Scale::new(scale, scale))
+                    .with_scale(genpdf::Scale::new(*scale, *scale))
                     .framed(style::LineStyle::new())
                     .padded(1),
             );
@@ -122,9 +122,9 @@ fn main() {
         vec![Box::new(elements::Text::new("Negative").padded(1))];
 
     let img = elements::Image::from_path(IMAGE_PATH_JPG).expect("invalid image");
-    for rot in [30, 45, 90, 120, 150, 180] {
+    for rot in &[30, 45, 90, 120, 150, 180] {
         heading_row.push(Box::new(elements::Text::new(format!("{}°", rot)).padded(1)));
-        let rot = f64::from(rot);
+        let rot = f64::from(*rot);
         pos_row.push(Box::new(
             img.clone()
                 .with_clockwise_rotation(rot)
