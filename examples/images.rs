@@ -92,24 +92,18 @@ fn main() {
         ("PNG", IMAGE_PATH_PNG),
     ] {
         let img = elements::Image::from_path(path).expect("invalid image");
-        img_table
+        let mut row = img_table
             .row()
-            .element(elements::Paragraph::new(ftype).padded(1))
-            .element(img.clone().framed(style::LineStyle::new()).padded(1))
-            .element(
+            .element(elements::Paragraph::new(ftype).padded(1));
+        for scale in [1.0, 0.5, 2.0] {
+            row.push_element(
                 img.clone()
-                    .with_scale(genpdf::Scale::new(0.5, 0.5))
+                    .with_scale(genpdf::Scale::new(scale, scale))
                     .framed(style::LineStyle::new())
                     .padded(1),
-            )
-            .element(
-                img.clone()
-                    .with_scale(genpdf::Scale::new(2, 2))
-                    .framed(style::LineStyle::new())
-                    .padded(1),
-            )
-            .push()
-            .expect("Invalid row");
+            );
+        }
+        row.push().expect("Invalid row");
     }
     doc.push(img_table);
 
@@ -119,100 +113,35 @@ fn main() {
     ));
     let mut rot_table = elements::TableLayout::new(vec![2, 2, 2, 2, 2, 2, 2]);
     rot_table.set_cell_decorator(elements::FrameCellDecorator::new(true, true, false));
-    rot_table
-        .row()
-        .element(elements::Text::new("Rot").padded(1))
-        .element(elements::Text::new("30°").padded(1))
-        .element(elements::Text::new("45°").padded(1))
-        .element(elements::Text::new("90°").padded(1))
-        .element(elements::Text::new("120°").padded(1))
-        .element(elements::Text::new("150°").padded(1))
-        .element(elements::Text::new("180°").padded(1))
-        .push()
-        .expect("Invalid row");
+
+    let mut heading_row: Vec<Box<dyn genpdf::Element>> =
+        vec![Box::new(elements::Text::new("Rot").padded(1))];
+    let mut pos_row: Vec<Box<dyn genpdf::Element>> =
+        vec![Box::new(elements::Text::new("Positive").padded(1))];
+    let mut neg_row: Vec<Box<dyn genpdf::Element>> =
+        vec![Box::new(elements::Text::new("Negative").padded(1))];
+
     let img = elements::Image::from_path(IMAGE_PATH_JPG).expect("invalid image");
-    rot_table
-        .row()
-        .element(elements::Text::new("Positive").padded(1))
-        .element(
+    for rot in [30, 45, 90, 120, 150, 180] {
+        heading_row.push(Box::new(elements::Text::new(format!("{}°", rot)).padded(1)));
+        let rot = f64::from(rot);
+        pos_row.push(Box::new(
             img.clone()
-                .with_clockwise_rotation(30.0)
+                .with_clockwise_rotation(rot)
                 .framed(style::LineStyle::new())
                 .padded(1),
-        )
-        .element(
+        ));
+        neg_row.push(Box::new(
             img.clone()
-                .with_clockwise_rotation(45.0)
+                .with_clockwise_rotation(rot * -1.0)
                 .framed(style::LineStyle::new())
                 .padded(1),
-        )
-        .element(
-            img.clone()
-                .with_clockwise_rotation(90.0)
-                .framed(style::LineStyle::new())
-                .padded(1),
-        )
-        .element(
-            img.clone()
-                .with_clockwise_rotation(120.0)
-                .framed(style::LineStyle::new())
-                .padded(1),
-        )
-        .element(
-            img.clone()
-                .with_clockwise_rotation(150.0)
-                .framed(style::LineStyle::new())
-                .padded(1),
-        )
-        .element(
-            img.clone()
-                .with_clockwise_rotation(180.0)
-                .framed(style::LineStyle::new())
-                .padded(1),
-        )
-        .push()
-        .expect("Invalid row");
-    rot_table
-        .row()
-        .element(elements::Text::new("Negative").padded(1))
-        .element(
-            img.clone()
-                .with_clockwise_rotation(-30.0)
-                .framed(style::LineStyle::new())
-                .padded(1),
-        )
-        .element(
-            img.clone()
-                .with_clockwise_rotation(-45.0)
-                .framed(style::LineStyle::new())
-                .padded(1),
-        )
-        .element(
-            img.clone()
-                .with_clockwise_rotation(-90.0)
-                .framed(style::LineStyle::new())
-                .padded(1),
-        )
-        .element(
-            img.clone()
-                .with_clockwise_rotation(-120.0)
-                .framed(style::LineStyle::new())
-                .padded(1),
-        )
-        .element(
-            img.clone()
-                .with_clockwise_rotation(-150.0)
-                .framed(style::LineStyle::new())
-                .padded(1),
-        )
-        .element(
-            img.clone()
-                .with_clockwise_rotation(-180.0)
-                .framed(style::LineStyle::new())
-                .padded(1),
-        )
-        .push()
-        .expect("Invalid row");
+        ));
+    }
+
+    rot_table.push_row(heading_row).expect("Invalid row");
+    rot_table.push_row(pos_row).expect("Invalid row");
+    rot_table.push_row(neg_row).expect("Invalid row");
     doc.push(rot_table);
 
     doc.render_to_file(output_file)
