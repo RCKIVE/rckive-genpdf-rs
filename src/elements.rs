@@ -746,6 +746,27 @@ impl<E: Element> Element for FramedElement<E> {
 ///     .element(elements::Paragraph::new("second"))
 ///     .element(elements::Paragraph::new("third"));
 /// ```
+///
+/// Nested list using a [`LinearLayout`][]:
+/// ```
+/// use genpdf::elements;
+/// let list = elements::UnorderedList::new()
+///     .element(
+///         elements::OrderedList::new()
+///             .element(elements::Paragraph::new("Sublist with bullet point"))
+///     )
+///     .element(
+///         elements::LinearLayout::vertical()
+///             .element(elements::Paragraph::new("Sublist without bullet point:"))
+///             .element(
+///                 elements::OrderedList::new()
+///                     .element(elements::Paragraph::new("first"))
+///                     .element(elements::Paragraph::new("second"))
+///             )
+///     );
+/// ```
+///
+/// [`LinearLayout`]: struct.LinearLayout.html
 pub struct UnorderedList {
     layout: LinearLayout,
     bullet: Option<String>,
@@ -847,6 +868,27 @@ impl<E: Element + 'static> iter::FromIterator<E> for UnorderedList {
 ///     .element(elements::Paragraph::new("second"))
 ///     .element(elements::Paragraph::new("third"));
 /// ```
+///
+/// Nested list using a [`LinearLayout`][]:
+/// ```
+/// use genpdf::elements;
+/// let list = elements::OrderedList::new()
+///     .element(
+///         elements::UnorderedList::new()
+///             .element(elements::Paragraph::new("Sublist with number"))
+///     )
+///     .element(
+///         elements::LinearLayout::vertical()
+///             .element(elements::Paragraph::new("Sublist without number:"))
+///             .element(
+///                 elements::UnorderedList::new()
+///                     .element(elements::Paragraph::new("first"))
+///                     .element(elements::Paragraph::new("second"))
+///             )
+///     );
+/// ```
+///
+/// [`LinearLayout`]: struct.LinearLayout.html
 pub struct OrderedList {
     layout: LinearLayout,
     number: usize,
