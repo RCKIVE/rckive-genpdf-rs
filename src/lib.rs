@@ -577,6 +577,8 @@ pub struct Document {
     paper_size: Size,
     decorator: Option<Box<dyn PageDecorator>>,
     conformance: Option<printpdf::PdfConformance>,
+    creation_date: Option<printpdf::OffsetDateTime>,
+    modification_date: Option<printpdf::OffsetDateTime>,
 }
 
 impl Document {
@@ -591,6 +593,8 @@ impl Document {
             paper_size: PaperSize::A4.into(),
             decorator: None,
             conformance: None,
+            creation_date: None,
+            modification_date: None,
         }
     }
 
@@ -687,6 +691,16 @@ impl Document {
         ));
     }
 
+    /// Sets the creation date of the PDF file.
+    pub fn set_creation_date(&mut self, date: printpdf::OffsetDateTime) {
+        self.creation_date = Some(date);
+    }
+
+    /// Sets the modification date of the PDF file.
+    pub fn set_modification_date(&mut self, date: printpdf::OffsetDateTime) {
+        self.modification_date = Some(date);
+    }
+
     /// Adds the given element to the document.
     ///
     /// The given element is appended to the list of elements that is rendered by the root
@@ -708,6 +722,12 @@ impl Document {
         let mut renderer = render::Renderer::new(self.paper_size, &self.title)?;
         if let Some(conformance) = self.conformance {
             renderer = renderer.with_conformance(conformance);
+        }
+        if let Some(creation_date) = self.creation_date {
+            renderer = renderer.with_creation_date(creation_date);
+        }
+        if let Some(modification_date) = self.modification_date {
+            renderer = renderer.with_modification_date(modification_date);
         }
         self.context.font_cache.load_pdf_fonts(&renderer)?;
         loop {

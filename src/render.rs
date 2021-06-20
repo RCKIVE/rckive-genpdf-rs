@@ -66,6 +66,18 @@ impl Renderer {
         self
     }
 
+    /// Sets the creation date for the generated PDF document.
+    pub fn with_creation_date(mut self, date: printpdf::OffsetDateTime) -> Self {
+        self.doc = self.doc.with_creation_date(date);
+        self
+    }
+
+    /// Sets the modification date for the generated PDF document.
+    pub fn with_modification_date(mut self, date: printpdf::OffsetDateTime) -> Self {
+        self.doc = self.doc.with_mod_date(date);
+        self
+    }
+
     /// Adds a new page with the given size to the document.
     pub fn add_page(&mut self, size: impl Into<Size>) {
         let size = size.into();

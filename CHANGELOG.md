@@ -36,6 +36,8 @@ SPDX-License-Identifier: CC0-1.0
   layer of a page.
 - Remove left bearing from the first character of a string for consistent
   alignment with different font sizes.
+- Add `set_creation_date` and `set_modification_date` methods to `Document` and
+  `with_creation_date` and `with_modification_date` to `Renderer`.
 
 # v0.2.0 (2021-06-17)
 
