@@ -648,29 +648,61 @@ impl<E: Element> Element for FramedElement<E> {
         area: render::Area<'_>,
         style: Style,
     ) -> Result<RenderResult, Error> {
-        let result = self.element.render(context, area.clone(), style)?;
+        // For the element area calculations, we have to take into account the full line thickness.
+        // For the frame area, we only need half because we specify the center of the line.
+        let line_thickness = self.line_style.thickness();
+        let line_offset = line_thickness / 2.0;
 
+        // Calculate the areas in which to draw the element and the frame.
+        let mut element_area = area.clone();
+        let mut frame_area = area.clone();
+        element_area.add_margins(Margins::trbl(
+            0,
+            line_thickness,
+            line_thickness,
+            line_thickness,
+        ));
+        frame_area.add_margins(Margins::trbl(0, line_offset, 0, line_offset));
+        if self.is_first {
+            element_area.add_margins(Margins::trbl(line_thickness, 0, 0, 0));
+            frame_area.add_margins(Margins::trbl(line_offset, 0, 0, 0));
+        }
+
+        // Draw the element.
+        let mut result = self.element.render(context, element_area, style)?;
+        result.size.width = area.size().width;
+        if result.has_more {
+            frame_area.set_height(result.size.height + line_offset);
+        } else {
+            frame_area.set_height(result.size.height + line_thickness);
+        }
+
+        // Draw the frame.
         let top_left = Position::default();
-        let top_right = Position::new(area.size().width, 0);
-        let bottom_left = Position::new(0, result.size.height);
-        let bottom_right = Position::new(area.size().width, result.size.height);
+        let top_right = Position::new(frame_area.size().width, 0);
+        let bottom_left = Position::new(0, frame_area.size().height);
+        let bottom_right = Position::new(frame_area.size().width, frame_area.size().height);
 
         if self.is_first {
-            area.draw_line(
+            result.size.height += line_thickness;
+            frame_area.draw_line(
                 vec![bottom_right, top_right, top_left, bottom_left],
                 self.line_style,
             );
         }
         if !result.has_more {
-            area.draw_line(
+            result.size.height += line_thickness;
+            frame_area.draw_line(
                 vec![top_left, bottom_left, bottom_right, top_right],
                 self.line_style,
             );
         } else {
-            area.draw_line(vec![top_left, bottom_left], self.line_style);
-            area.draw_line(vec![top_right, bottom_right], self.line_style);
+            frame_area.draw_line(vec![top_left, bottom_left], self.line_style);
+            frame_area.draw_line(vec![top_right, bottom_right], self.line_style);
         }
+
         self.is_first = false;
+
         Ok(result)
     }
 }
