@@ -377,15 +377,31 @@ impl Font {
     ///
     /// [`FontCache`]: struct.FontCache.html
     pub fn char_width(&self, font_cache: &FontCache, c: char, font_size: u8) -> Mm {
-        let advance_width = font_cache
+        let advance_width = self.char_h_metrics(font_cache, c).advance_width;
+        Mm::from(printpdf::Pt(f64::from(
+            advance_width * f32::from(font_size),
+        )))
+    }
+
+    /// Returns the width of the empty space between the origin of the glyph bounding
+    /// box and the leftmost edge of the character, for a given font and font size.
+    ///
+    /// The given [`FontCache`][] must be the font cache that loaded this font.
+    ///
+    /// [`FontCache`]: struct.FontCache.html
+    pub fn char_left_side_bearing(&self, font_cache: &FontCache, c: char, font_size: u8) -> Mm {
+        let left_side_bearing = self.char_h_metrics(font_cache, c).left_side_bearing;
+        Mm::from(printpdf::Pt(f64::from(
+            left_side_bearing * f32::from(font_size),
+        )))
+    }
+
+    fn char_h_metrics(&self, font_cache: &FontCache, c: char) -> rusttype::HMetrics {
+        font_cache
             .get_rt_font(*self)
             .glyph(c)
             .scaled(self.scale)
             .h_metrics()
-            .advance_width;
-        Mm::from(printpdf::Pt(f64::from(
-            advance_width * f32::from(font_size),
-        )))
     }
 
     /// Returns the width of a string with this font and the given font size.
@@ -449,6 +465,14 @@ impl Font {
             .map(|g| g.id().0 as u16)
             .collect()
     }
+
+    /// Calculate the metrics of a given font size for this font.
+    pub fn metrics(&self, font_size: u8) -> Metrics {
+        Metrics::new(
+            self.line_height * f64::from(font_size),
+            self.glyph_height * f64::from(font_size),
+        )
+    }
 }
 
 fn from_file(
@@ -487,4 +511,23 @@ pub fn from_files(
         italic: from_file(dir, name, FontStyle::Italic, builtin)?,
         bold_italic: from_file(dir, name, FontStyle::BoldItalic, builtin)?,
     })
+}
+
+/// The metrics of a font at a given scale.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Metrics {
+    /// The line height of the font at a given scale.
+    pub line_height: Mm,
+    /// The glyph height of the font at a given scale.
+    pub glyph_height: Mm,
+}
+
+impl Metrics {
+    /// Create a new metrics instance with the given heights.
+    pub fn new(line_height: Mm, glyph_height: Mm) -> Metrics {
+        Metrics {
+            line_height,
+            glyph_height,
+        }
+    }
 }

@@ -438,7 +438,9 @@ impl<'p> Area<'p> {
         style: Style,
         s: S,
     ) -> Result<bool, Error> {
-        if let Some(mut section) = self.text_section(font_cache, position, style) {
+        if let Some(mut section) =
+            self.text_section(font_cache, position, style.metrics(font_cache))
+        {
             section.print_str(s, style)?;
             Ok(true)
         } else {
@@ -455,9 +457,9 @@ impl<'p> Area<'p> {
         &self,
         font_cache: &'f fonts::FontCache,
         position: Position,
-        style: Style,
+        metrics: fonts::Metrics,
     ) -> Option<TextSection<'f, 'p>> {
-        TextSection::new(font_cache, self.clone(), position, style)
+        TextSection::new(font_cache, self.clone(), position, metrics)
     }
 
     /// Transforms the given position that is relative to the upper left corner of the area to a
@@ -476,9 +478,10 @@ impl<'p> Area<'p> {
 pub struct TextSection<'f, 'p> {
     font_cache: &'f fonts::FontCache,
     area: Area<'p>,
-    line_height: Mm,
-    cursor: Position,
+    position: Position,
     fill_color: Option<Color>,
+    is_first: bool,
+    metrics: fonts::Metrics,
 }
 
 impl<'f, 'p> TextSection<'f, 'p> {
@@ -486,40 +489,43 @@ impl<'f, 'p> TextSection<'f, 'p> {
         font_cache: &'f fonts::FontCache,
         area: Area<'p>,
         position: Position,
-        style: Style,
+        metrics: fonts::Metrics,
     ) -> Option<TextSection<'f, 'p>> {
-        let height = style.font(font_cache).glyph_height(style.font_size());
-
-        if position.y + height > area.size.height {
+        if position.y + metrics.glyph_height > area.size.height {
             return None;
         }
 
-        let line_height = style.line_height(font_cache);
         let section = TextSection {
             font_cache,
             area,
-            line_height,
-            cursor: position,
+            position,
             fill_color: None,
+            is_first: true,
+            metrics,
         };
+
         section.layer().begin_text_section();
-        section.layer().set_line_height(line_height.into());
-        let cursor = section.area.transform_position(position);
-        section
-            .layer()
-            .set_text_cursor(cursor.x.into(), (cursor.y - height).into());
+        section.layer().set_line_height(metrics.line_height.into());
         Some(section)
+    }
+
+    fn set_text_cursor(&mut self) {
+        let cursor_t = self.area.transform_position(self.position);
+        self.layer().set_text_cursor(
+            cursor_t.x.into(),
+            (cursor_t.y - self.metrics.glyph_height).into(),
+        );
     }
 
     /// Tries to add a new line and returns `true` if the area was large enough to fit the new
     /// line.
     #[must_use]
     pub fn add_newline(&mut self) -> bool {
-        if self.cursor.y + self.line_height > self.area.size.height {
+        if self.position.y + self.metrics.line_height > self.area.size.height {
             false
         } else {
             self.layer().add_line_break();
-            self.cursor.y += self.line_height;
+            self.position.y += self.metrics.line_height;
             true
         }
     }
@@ -529,18 +535,29 @@ impl<'f, 'p> TextSection<'f, 'p> {
     /// The font cache for this text section must contain the PDF font for the given style.
     pub fn print_str(&mut self, s: impl AsRef<str>, style: Style) -> Result<(), Error> {
         let font = style.font(self.font_cache);
+        let s = s.as_ref();
+
+        // Adjust cursor to remove left bearing of the first character of the first string
+        if self.is_first {
+            if let Some(first_c) = s.chars().next() {
+                let l_bearing = style.char_left_side_bearing(self.font_cache, first_c);
+                self.position.x -= l_bearing;
+            }
+            self.set_text_cursor();
+        }
+        self.is_first = false;
 
         let positions = font
-            .kerning(self.font_cache, s.as_ref().chars())
+            .kerning(self.font_cache, s.chars())
             .into_iter()
             // Kerning is measured in 1/1000 em
             .map(|pos| pos * -1000.0)
             .map(|pos| pos as i64);
         let codepoints = if font.is_builtin() {
             // Built-in fonts always use the Windows-1252 encoding
-            encode_win1252(s.as_ref())?
+            encode_win1252(s)?
         } else {
-            font.glyph_ids(&self.font_cache, s.as_ref().chars())
+            font.glyph_ids(&self.font_cache, s.chars())
         };
 
         let font = self

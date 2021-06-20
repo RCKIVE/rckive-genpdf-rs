@@ -254,6 +254,17 @@ impl Style {
             .char_width(font_cache, c, self.font_size())
     }
 
+    /// Returns the width of the empty space between the origin of the glyph bounding
+    /// box and the leftmost edge of the character, for this style using the given font cache.
+    ///
+    /// If the font family is set, it must have been created by the given [`FontCache`][].
+    ///
+    /// [`FontCache`]: ../fonts/struct.FontCache.html
+    pub fn char_left_side_bearing(&self, font_cache: &fonts::FontCache, c: char) -> Mm {
+        self.font(font_cache)
+            .char_left_side_bearing(font_cache, c, self.font_size())
+    }
+
     /// Calculates the width of the given string with this style using the data in the given font
     /// cache.
     ///
@@ -293,6 +304,17 @@ impl Style {
     /// [`FontCache`]: ../fonts/struct.FontCache.html
     pub fn line_height(&self, font_cache: &fonts::FontCache) -> Mm {
         self.font(font_cache).get_line_height(self.font_size()) * self.line_spacing()
+    }
+
+    /// Calculate the metrics of the font for this style using the data in the given font cache.
+    ///
+    /// If the font family is set, it must have been created by the given [`FontCache`][].
+    ///
+    /// [`FontCache`]: ../fonts/struct.FontCache.html
+    pub fn metrics(&self, font_cache: &fonts::FontCache) -> fonts::Metrics {
+        let mut metrics = self.font(font_cache).metrics(self.font_size());
+        metrics.line_height *= self.line_spacing();
+        metrics
     }
 }
 

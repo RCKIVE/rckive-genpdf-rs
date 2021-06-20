@@ -48,6 +48,7 @@ use std::iter;
 use std::mem;
 
 use crate::error::{Error, ErrorKind};
+use crate::fonts;
 use crate::render;
 use crate::style::{LineStyle, Style, StyledString};
 use crate::wrap;
@@ -222,9 +223,7 @@ impl Element for Text {
 /// strings to this paragraph.  Besides the styling of the text (see [`Style`][]), you can also set
 /// an [`Alignment`][] for the paragraph.
 ///
-/// Note that the line height and spacing is currently calculated based on the style of the entire
-/// paragraph (for example set by [`Element::styled`]).  If the font family or font size is changed
-/// in the [`Style`][] settings for a string, the line height and spacing might be incorrect.
+/// The line height and spacing are calculated based on the style of each string.
 ///
 /// # Examples
 ///
@@ -341,14 +340,22 @@ impl Element for Paragraph {
             self.words = wrap::Words::new(mem::take(&mut self.text)).collect();
         }
 
-        let height = style.line_height(&context.font_cache);
         let words = self.words.iter().map(Into::into);
         let mut rendered_len = 0;
         for (line, delta) in wrap::Wrapper::new(words, context, area.size().width) {
             let width = line.iter().map(|s| s.width(&context.font_cache)).sum();
+            // Calculate the maximum line height
+            let metrics = line
+                .iter()
+                .map(|s| s.style.metrics(&context.font_cache))
+                .fold(fonts::Metrics::default(), |mut max, m| {
+                    max.line_height = max.line_height.max(m.line_height);
+                    max.glyph_height = max.glyph_height.max(m.glyph_height);
+                    max
+                });
             let position = Position::new(self.get_offset(width, area.size().width), 0);
-            // TODO: calculate the maximum line height
-            if let Some(mut section) = area.text_section(&context.font_cache, position, style) {
+
+            if let Some(mut section) = area.text_section(&context.font_cache, position, metrics) {
                 for s in line {
                     section.print_str(&s.s, s.style)?;
                     rendered_len += s.s.len();
@@ -358,8 +365,10 @@ impl Element for Paragraph {
                 result.has_more = true;
                 break;
             }
-            result.size = result.size.stack_vertical(Size::new(width, height));
-            area.add_offset(Position::new(0, height));
+            result.size = result
+                .size
+                .stack_vertical(Size::new(width, metrics.line_height));
+            area.add_offset(Position::new(0, metrics.line_height));
         }
 
         // Remove the rendered data from self.words so that we don’t render it again on the next
