@@ -17,6 +17,11 @@ SPDX-License-Identifier: CC0-1.0
   - Remove the `style` argument from `CellDecorator::decorate_cell`.
   - Change the `Style` argument for `Area::draw_line` to `LineStyle`.
   - Change `Element::framed` to take the line style as an argument.
+- Fix the line height calculations for multi-style paragraphs:
+  - Introduce the `fonts::Metrics` struct and the `Font::metrics` and
+    `Style::metrics` methods.
+  - Calculate the maximum line metrics in `Paragraph::render`.
+  - Change `Area::text_section` to take `Metrics` instead of `Style`.
 - Refactor the `render` module:
   - Change the `Layer`, `Area` and `TextSection` lifetimes.
   - Store a reference to the current `Page` in `Layer`.
@@ -29,6 +34,8 @@ SPDX-License-Identifier: CC0-1.0
 - Add the `minimal` example that produces a minimal PDF document.
 - Add the `Layer::next` and `Area::next_layer` methods for accessing the next
   layer of a page.
+- Remove left bearing from the first character of a string for consistent
+  alignment with different font sizes.
 
 # v0.2.0 (2021-06-17)
 
