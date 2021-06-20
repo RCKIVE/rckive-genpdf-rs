@@ -23,7 +23,7 @@ SPDX-License-Identifier: CC0-1.0
 - Implement `std::iter::Extend` for `Document`, `LinearLayout`,
   `UnorderedList`, `OrderedList` and `TableLayoutRow`.
 - Implement `std::iter::FromIterator` for `UnorderedList` and `OrderedList`.
-- Add the `minimal` that produces a minimal PDF document.
+- Add the `minimal` example that produces a minimal PDF document.
 
 # v0.2.0 (2021-06-17)
 
