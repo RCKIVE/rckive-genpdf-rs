@@ -95,17 +95,17 @@ fn main() {
         img_table
             .row()
             .element(elements::Paragraph::new(ftype).padded(1))
-            .element(img.clone().framed().padded(1))
+            .element(img.clone().framed(style::LineStyle::new()).padded(1))
             .element(
                 img.clone()
                     .with_scale(genpdf::Scale::new(0.5, 0.5))
-                    .framed()
+                    .framed(style::LineStyle::new())
                     .padded(1),
             )
             .element(
                 img.clone()
                     .with_scale(genpdf::Scale::new(2, 2))
-                    .framed()
+                    .framed(style::LineStyle::new())
                     .padded(1),
             )
             .push()
@@ -134,25 +134,25 @@ fn main() {
     rot_table
         .row()
         .element(elements::Text::new("Positive").padded(1))
-        .element(img.clone().with_clockwise_rotation(30.0).framed().padded(1))
-        .element(img.clone().with_clockwise_rotation(45.0).framed().padded(1))
-        .element(img.clone().with_clockwise_rotation(90.0).framed().padded(1))
+        .element(img.clone().with_clockwise_rotation(30.0).framed(style::LineStyle::new()).padded(1))
+        .element(img.clone().with_clockwise_rotation(45.0).framed(style::LineStyle::new()).padded(1))
+        .element(img.clone().with_clockwise_rotation(90.0).framed(style::LineStyle::new()).padded(1))
         .element(
             img.clone()
                 .with_clockwise_rotation(120.0)
-                .framed()
+                .framed(style::LineStyle::new())
                 .padded(1),
         )
         .element(
             img.clone()
                 .with_clockwise_rotation(150.0)
-                .framed()
+                .framed(style::LineStyle::new())
                 .padded(1),
         )
         .element(
             img.clone()
                 .with_clockwise_rotation(180.0)
-                .framed()
+                .framed(style::LineStyle::new())
                 .padded(1),
         )
         .push()
@@ -163,37 +163,37 @@ fn main() {
         .element(
             img.clone()
                 .with_clockwise_rotation(-30.0)
-                .framed()
+                .framed(style::LineStyle::new())
                 .padded(1),
         )
         .element(
             img.clone()
                 .with_clockwise_rotation(-45.0)
-                .framed()
+                .framed(style::LineStyle::new())
                 .padded(1),
         )
         .element(
             img.clone()
                 .with_clockwise_rotation(-90.0)
-                .framed()
+                .framed(style::LineStyle::new())
                 .padded(1),
         )
         .element(
             img.clone()
                 .with_clockwise_rotation(-120.0)
-                .framed()
+                .framed(style::LineStyle::new())
                 .padded(1),
         )
         .element(
             img.clone()
                 .with_clockwise_rotation(-150.0)
-                .framed()
+                .framed(style::LineStyle::new())
                 .padded(1),
         )
         .element(
             img.clone()
                 .with_clockwise_rotation(-180.0)
-                .framed()
+                .framed(style::LineStyle::new())
                 .padded(1),
         )
         .push()
