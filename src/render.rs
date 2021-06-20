@@ -192,7 +192,9 @@ impl Page {
 
     fn next_layer(&self, layer: &printpdf::PdfLayerReference) -> Layer<'_> {
         let layer = self.layers.next(layer).unwrap_or_else(|| {
-            let layer = self.page.add_layer(format!("Layer {}", self.layers.len() + 1));
+            let layer = self
+                .page
+                .add_layer(format!("Layer {}", self.layers.len() + 1));
             self.layers.push(layer.clone());
             layer
         });
