@@ -111,6 +111,7 @@ test_with_document! {
     }
 
     #[test]
+    #[ignore]
     fn sizes(doc: genpdf::Document) -> genpdf::Document {
         // TODO: Top/bottom spacing
         let mut doc = doc;
