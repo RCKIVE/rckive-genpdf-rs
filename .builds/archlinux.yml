@@ -1,10 +1,11 @@
-# Copyright (C) 2020 Robin Krahl <robin.krahl@ireas.org>
+# Copyright (C) 2020-2021 Robin Krahl <robin.krahl@ireas.org>
 # SPDX-License-Identifier: CC0-1.0
 image: archlinux
 packages:
   - gnupg
   - reuse
   - rustup
+  - ttf-liberation
 sources:
   - https://git.sr.ht/~ireas/genpdf-rs
 tasks:
