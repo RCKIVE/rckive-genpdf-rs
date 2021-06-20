@@ -38,6 +38,7 @@ SPDX-License-Identifier: CC0-1.0
   alignment with different font sizes.
 - Add `set_creation_date` and `set_modification_date` methods to `Document` and
   `with_creation_date` and `with_modification_date` to `Renderer`.
+- Add basic test.
 
 # v0.2.0 (2021-06-17)
 

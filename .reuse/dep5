@@ -1,0 +1,8 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: genpdf-rs
+Upstream-Contact: Robin Krahl <robin.krahl@ireas.org>
+Source: https://sr.ht/~ireas/genpdf-rs
+
+Files: tests/files/*
+Copyright: 2021 Robin Krahl <robin.krahl@ireas.org>
+License: CC0-1.0
