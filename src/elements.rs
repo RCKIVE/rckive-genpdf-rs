@@ -373,7 +373,10 @@ impl Element for Paragraph {
         }
 
         if wrapper.has_overflowed() {
-            return Err(Error::new("Page overflowed while trying to wrap a string", ErrorKind::PageSizeExceeded));
+            return Err(Error::new(
+                "Page overflowed while trying to wrap a string",
+                ErrorKind::PageSizeExceeded,
+            ));
         }
 
         // Remove the rendered data from self.words so that we don’t render it again on the next
