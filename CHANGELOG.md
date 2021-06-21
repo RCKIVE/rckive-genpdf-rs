@@ -17,6 +17,9 @@ SPDX-License-Identifier: CC0-1.0
   - Remove the `style` argument from `CellDecorator::decorate_cell`.
   - Change the `Style` argument for `Area::draw_line` to `LineStyle`.
   - Change `Element::framed` to take the line style as an argument.
+  - Add the `prepare_cell` method to `CellDecorator`.
+  - Add the `row_height` argument to `CellDecorator::decorate_cell` and make it
+    return the total row height.
 - Fix the line height calculations for multi-style paragraphs:
   - Introduce the `fonts::Metrics` struct and the `Font::metrics` and
     `Style::metrics` methods.

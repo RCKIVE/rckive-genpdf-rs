@@ -1039,15 +1039,36 @@ impl<E: Element> Element for BulletPoint<E> {
 pub trait CellDecorator {
     /// Sets the size of the table.
     ///
-    /// This function is called once before the first call to [`decorate_cell`][].
+    /// This function is called once before the first call to [`prepare_cell`][] or
+    /// [`decorate_cell`][].
     ///
+    /// [`prepare_cell`]: #tymethod.prepare_cell
     /// [`decorate_cell`]: #tymethod.decorate_cell
     fn set_table_size(&mut self, num_columns: usize, num_rows: usize) {
         let _ = (num_columns, num_rows);
     }
 
-    /// Styles the cell with the given indizes thas has been rendered within the given area.
-    fn decorate_cell(&mut self, column: usize, row: usize, has_more: bool, area: render::Area<'_>);
+    /// Prepares the cell with the given indizes and returns the area for rendering the cell.
+    fn prepare_cell<'p>(
+        &self,
+        column: usize,
+        row: usize,
+        area: render::Area<'p>,
+    ) -> render::Area<'p> {
+        let _ = (column, row);
+        area
+    }
+
+    /// Styles the cell with the given indizes thas has been rendered within the given area and the
+    /// given row height and return the total row height.
+    fn decorate_cell(
+        &mut self,
+        column: usize,
+        row: usize,
+        has_more: bool,
+        area: render::Area<'_>,
+        row_height: Mm,
+    ) -> Mm;
 }
 
 /// A cell decorator that draws frames around table cells.
@@ -1108,7 +1129,7 @@ impl FrameCellDecorator {
         if column + 1 == self.num_columns {
             self.outer
         } else {
-            self.inner
+            false
         }
     }
 
@@ -1130,7 +1151,7 @@ impl FrameCellDecorator {
         } else if row + 1 == self.num_rows {
             self.outer
         } else {
-            self.inner
+            false
         }
     }
 }
@@ -1141,38 +1162,109 @@ impl CellDecorator for FrameCellDecorator {
         self.num_rows = num_rows;
     }
 
-    fn decorate_cell(&mut self, column: usize, row: usize, has_more: bool, area: render::Area<'_>) {
+    fn prepare_cell<'p>(
+        &self,
+        column: usize,
+        row: usize,
+        mut area: render::Area<'p>,
+    ) -> render::Area<'p> {
+        let margin = self.line_style.thickness();
+        let margins = Margins::trbl(
+            if self.print_top(row) {
+                margin
+            } else {
+                0.into()
+            },
+            if self.print_right(column) {
+                margin
+            } else {
+                0.into()
+            },
+            if self.print_bottom(row, false) {
+                margin
+            } else {
+                0.into()
+            },
+            if self.print_left(column) {
+                margin
+            } else {
+                0.into()
+            },
+        );
+        area.add_margins(margins);
+        area
+    }
+
+    fn decorate_cell(
+        &mut self,
+        column: usize,
+        row: usize,
+        has_more: bool,
+        area: render::Area<'_>,
+        row_height: Mm,
+    ) -> Mm {
+        let print_top = self.print_top(row);
+        let print_bottom = self.print_bottom(row, has_more);
+        let print_left = self.print_left(column);
+        let print_right = self.print_right(column);
+
         let size = area.size();
+        let line_offset = self.line_style.thickness() / 2.0;
 
-        if self.print_left(column) {
-            area.draw_line(
-                vec![Position::default(), Position::new(0, size.height)],
-                self.line_style,
-            );
-        }
+        let left = Mm::from(0);
+        let right = size.width;
+        let top = Mm::from(0);
+        let bottom = row_height
+            + if print_bottom {
+                self.line_style.thickness()
+            } else {
+                0.into()
+            }
+            + if print_top {
+                self.line_style.thickness()
+            } else {
+                0.into()
+            };
 
-        if self.print_right(column) {
+        let mut total_height = row_height;
+
+        if print_top {
             area.draw_line(
                 vec![
-                    Position::new(size.width, 0),
-                    Position::new(size.width, size.height),
+                    Position::new(left, top + line_offset),
+                    Position::new(right, top + line_offset),
+                ],
+                self.line_style,
+            );
+            total_height += self.line_style.thickness();
+        }
+
+        if print_right {
+            area.draw_line(
+                vec![
+                    Position::new(right - line_offset, top),
+                    Position::new(right - line_offset, bottom),
                 ],
                 self.line_style,
             );
         }
 
-        if self.print_top(row) {
-            area.draw_line(
-                vec![Position::default(), Position::new(size.width, 0)],
-                self.line_style,
-            );
-        }
-
-        if self.print_bottom(row, has_more) {
+        if print_bottom {
             area.draw_line(
                 vec![
-                    Position::new(0, size.height),
-                    Position::new(size.width, size.height),
+                    Position::new(left, bottom - line_offset),
+                    Position::new(right, bottom - line_offset),
+                ],
+                self.line_style,
+            );
+            total_height += self.line_style.thickness();
+        }
+
+        if print_left {
+            area.draw_line(
+                vec![
+                    Position::new(left + line_offset, top),
+                    Position::new(left + line_offset, bottom),
                 ],
                 self.line_style,
             );
@@ -1181,6 +1273,8 @@ impl CellDecorator for FrameCellDecorator {
         if column + 1 == self.num_columns {
             self.last_row = Some(row);
         }
+
+        total_height
     }
 }
 
@@ -1356,8 +1450,18 @@ impl TableLayout {
         let mut result = RenderResult::default();
 
         let areas = area.split_horizontally(&self.column_weights);
+        let cell_areas = if let Some(decorator) = &self.cell_decorator {
+            areas
+                .iter()
+                .enumerate()
+                .map(|(i, area)| decorator.prepare_cell(i, self.render_idx, area.clone()))
+                .collect()
+        } else {
+            areas.clone()
+        };
+
         let mut row_height = Mm::from(0);
-        for (area, element) in areas.iter().zip(self.rows[self.render_idx].iter_mut()) {
+        for (area, element) in cell_areas.iter().zip(self.rows[self.render_idx].iter_mut()) {
             let element_result = element.render(context, area.clone(), style)?;
             result.has_more |= element_result.has_more;
             row_height = row_height.max(element_result.size.height);
@@ -1365,9 +1469,10 @@ impl TableLayout {
         result.size.height = row_height;
 
         if let Some(decorator) = &mut self.cell_decorator {
-            for (i, mut area) in areas.into_iter().enumerate() {
-                area.set_height(row_height);
-                decorator.decorate_cell(i, self.render_idx, result.has_more, area);
+            for (i, area) in areas.into_iter().enumerate() {
+                let height =
+                    decorator.decorate_cell(i, self.render_idx, result.has_more, area, row_height);
+                result.size.height = result.size.height.max(height);
             }
         }
 
