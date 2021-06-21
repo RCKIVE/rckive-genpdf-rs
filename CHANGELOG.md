@@ -43,6 +43,10 @@ SPDX-License-Identifier: CC0-1.0
   `with_creation_date` and `with_modification_date` to `Renderer`.
 - Add basic test.
 
+## Bug Fixes
+
+- Return an error if a paragraph overflows.
+
 # v0.2.0 (2021-06-17)
 
 This release improves the font handling, adds support for embedding images and
