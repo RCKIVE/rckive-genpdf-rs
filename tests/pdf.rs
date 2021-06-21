@@ -102,6 +102,16 @@ test_with_document! {
     }
 
     #[test]
+    // Ignore as this currently returns an error
+    #[ignore]
+    fn paragraph_long(doc: genpdf::Document) -> genpdf::Document {
+        let mut doc = doc;
+        doc.set_paper_size((50, 100));
+        doc.push(elements::Paragraph::new("Donaudampfschifffahrtskapitänsmützenhersteller"));
+        doc
+    }
+
+    #[test]
     fn kerning(doc: genpdf::Document) -> genpdf::Document {
         let mut doc = doc;
         doc.set_paper_size((7, 10));

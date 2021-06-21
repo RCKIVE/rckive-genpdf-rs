@@ -342,7 +342,8 @@ impl Element for Paragraph {
 
         let words = self.words.iter().map(Into::into);
         let mut rendered_len = 0;
-        for (line, delta) in wrap::Wrapper::new(words, context, area.size().width) {
+        let mut wrapper = wrap::Wrapper::new(words, context, area.size().width);
+        for (line, delta) in &mut wrapper {
             let width = line.iter().map(|s| s.width(&context.font_cache)).sum();
             // Calculate the maximum line height
             let metrics = line
@@ -369,6 +370,10 @@ impl Element for Paragraph {
                 .size
                 .stack_vertical(Size::new(width, metrics.line_height));
             area.add_offset(Position::new(0, metrics.line_height));
+        }
+
+        if wrapper.has_overflowed() {
+            return Err(Error::new("Page overflowed while trying to wrap a string", ErrorKind::PageSizeExceeded));
         }
 
         // Remove the rendered data from self.words so that we don’t render it again on the next

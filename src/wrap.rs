@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2020 Robin Krahl <robin.krahl@ireas.org>
+// SPDX-FileCopyrightText: 2020-2021 Robin Krahl <robin.krahl@ireas.org>
 // SPDX-License-Identifier: Apache-2.0 or MIT
 
 //! Utilities for text wrapping.
@@ -18,6 +18,7 @@ pub struct Wrapper<'c, 's, I: Iterator<Item = style::StyledStr<'s>>> {
     width: Mm,
     x: Mm,
     buf: Vec<style::StyledCow<'s>>,
+    has_overflowed: bool,
 }
 
 impl<'c, 's, I: Iterator<Item = style::StyledStr<'s>>> Wrapper<'c, 's, I> {
@@ -29,7 +30,14 @@ impl<'c, 's, I: Iterator<Item = style::StyledStr<'s>>> Wrapper<'c, 's, I> {
             width,
             x: Mm(0.0),
             buf: Vec::new(),
+            has_overflowed: false,
         }
+    }
+
+    /// Returns true if this wrapper has overflowed, i. e. if it encountered a word that it could
+    /// not split so that it would fit into a line.
+    pub fn has_overflowed(&self) -> bool {
+        self.has_overflowed
     }
 }
 
@@ -62,8 +70,9 @@ impl<'c, 's, I: Iterator<Item = style::StyledStr<'s>>> Iterator for Wrapper<'c, 
                 if width > self.width {
                     // The remainder of the word is longer than the current page – we will never be
                     // able to render it completely.
-                    // TODO: return error?
-                    break;
+                    // TODO: handle gracefully, emit warning
+                    self.has_overflowed = true;
+                    return None;
                 }
 
                 // Return the current line and add the word that did not fit to the next line
