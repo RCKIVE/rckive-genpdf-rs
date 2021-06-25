@@ -46,6 +46,8 @@ SPDX-License-Identifier: CC0-1.0
 - Add basic test suite.
 - Add the `UserSpacePosition` and `LayerPosition` structs to the `render`
   module.
+- Cache per-layer settings (fill color, outline color, outline thickness) and
+  per-text-section settings (font family and size).
 
 ## Bug Fixes
 

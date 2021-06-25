@@ -11,7 +11,7 @@
 10 0 obj<</Type/OCG/Name(Layer 1)/Intent 9 0 R/Usage 8 0 R>>endobj
 11 0 obj<</Helvetica 1 0 R/Helvetica-Bold 2 0 R/Helvetica-BoldOblique 4 0 R/Helvetica-Oblique 3 0 R>>endobj
 12 0 obj<</Properties<</MC0 10 0 R>>/Font 11 0 R>>endobj
-13 0 obj<</Length 340>>stream
+13 0 obj<</Length 276>>stream
 /OC /MC0 BDC
 q
 BT
@@ -19,18 +19,14 @@ BT
 27.36 43.29 Td
 /Helvetica 12.00 Tf
 [<004C><006F><0072><0065><006D><0020>] TJ
-/Helvetica 12.00 Tf
 [<0069><0070><0073><0075><006D>] TJ
 ET
 14.17 w
-0.00 0.00 0.00 RG
 262.20 35.81 m
 262.20 63.78 l
 21.26 63.78 l
 21.26 35.81 l
 S
-14.17 w
-0.00 0.00 0.00 RG
 21.26 63.78 m
 21.26 35.81 l
 262.20 35.81 l
@@ -57,10 +53,10 @@ xref
 0000000783 00000 n 
 0000000891 00000 n 
 0000000948 00000 n 
-0000001335 00000 n 
-0000001498 00000 n 
+0000001271 00000 n 
+0000001434 00000 n 
 trailer
 <</Root 15 0 R/Info 7 0 R/Size 16>>
 startxref
-1667
+1603
 %%EOF

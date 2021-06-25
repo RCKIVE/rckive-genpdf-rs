@@ -359,22 +359,33 @@ impl<'p> Layer<'p> {
         self.data.layer.add_shape(line);
     }
 
-    fn set_fill_color(&self, color: Color) {
-        self.data.layer.set_fill_color(color.into());
+    fn set_fill_color(&self, color: Option<Color>) {
+        if self.data.update_fill_color(color) {
+            self.data
+                .layer
+                .set_fill_color(color.unwrap_or(Color::Rgb(0, 0, 0)).into());
+        }
     }
 
     fn set_outline_thickness(&self, thickness: Mm) {
-        self.data.layer
-            .set_outline_thickness(printpdf::Pt::from(thickness).0);
+        if self.data.update_outline_thickness(thickness) {
+            self.data
+                .layer
+                .set_outline_thickness(printpdf::Pt::from(thickness).0);
+        }
     }
 
     fn set_outline_color(&self, color: Color) {
-        self.data.layer.set_outline_color(color.into());
+        if self.data.update_outline_color(color) {
+            self.data.layer.set_outline_color(color.into());
+        }
     }
 
     fn set_text_cursor(&self, cursor: LayerPosition) {
         let cursor = self.transform_position(cursor);
-        self.data.layer.set_text_cursor(cursor.x.into(), cursor.y.into());
+        self.data
+            .layer
+            .set_text_cursor(cursor.x.into(), cursor.y.into());
     }
 
     fn begin_text_section(&self) {
@@ -402,7 +413,8 @@ impl<'p> Layer<'p> {
         P: IntoIterator<Item = i64>,
         C: IntoIterator<Item = u16>,
     {
-        self.data.layer
+        self.data
+            .layer
             .write_positioned_codepoints(positions.into_iter().zip(codepoints.into_iter()));
     }
 
@@ -416,11 +428,34 @@ impl<'p> Layer<'p> {
 #[derive(Debug)]
 struct LayerData {
     layer: printpdf::PdfLayerReference,
+    fill_color: cell::Cell<Color>,
+    outline_color: cell::Cell<Color>,
+    outline_thickness: cell::Cell<Mm>,
+}
+
+impl LayerData {
+    pub fn update_fill_color(&self, color: Option<Color>) -> bool {
+        let color = color.unwrap_or(Color::Rgb(0, 0, 0));
+        self.fill_color.replace(color) != color
+    }
+
+    pub fn update_outline_color(&self, color: Color) -> bool {
+        self.outline_color.replace(color) != color
+    }
+
+    pub fn update_outline_thickness(&self, thickness: Mm) -> bool {
+        self.outline_thickness.replace(thickness) != thickness
+    }
 }
 
 impl From<printpdf::PdfLayerReference> for LayerData {
     fn from(layer: printpdf::PdfLayerReference) -> Self {
-        Self { layer }
+        Self {
+            layer,
+            fill_color: Color::Rgb(0, 0, 0).into(),
+            outline_color: Color::Rgb(0, 0, 0).into(),
+            outline_thickness: Mm::from(printpdf::Pt(1.0)).into(),
+        }
     }
 }
 
@@ -601,9 +636,9 @@ pub struct TextSection<'f, 'p> {
     font_cache: &'f fonts::FontCache,
     area: Area<'p>,
     position: Position,
-    fill_color: Option<Color>,
     is_first: bool,
     metrics: fonts::Metrics,
+    font: Option<(printpdf::IndirectFontRef, u8)>,
 }
 
 impl<'f, 'p> TextSection<'f, 'p> {
@@ -621,9 +656,9 @@ impl<'f, 'p> TextSection<'f, 'p> {
             font_cache,
             area,
             position,
-            fill_color: None,
             is_first: true,
             metrics,
+            font: None,
         };
 
         section.area.layer.begin_text_section();
@@ -631,11 +666,24 @@ impl<'f, 'p> TextSection<'f, 'p> {
         Some(section)
     }
 
-    fn set_text_cursor(&mut self) {
+    fn set_text_cursor(&self) {
         let cursor = self
             .area
             .position(self.position + Position::new(0, self.metrics.glyph_height));
         self.area.layer.set_text_cursor(cursor);
+    }
+
+    fn set_font(&mut self, font: &printpdf::IndirectFontRef, font_size: u8) {
+        let font_is_set = self
+            .font
+            .as_ref()
+            .map(|(font, font_size)| (font, *font_size))
+            .map(|data| data == (font, font_size))
+            .unwrap_or_default();
+        if !font_is_set {
+            self.font = Some((font.clone(), font_size));
+            self.area.layer.set_font(font, font_size);
+        }
     }
 
     /// Tries to add a new line and returns `true` if the area was large enough to fit the new
@@ -685,13 +733,8 @@ impl<'f, 'p> TextSection<'f, 'p> {
             .font_cache
             .get_pdf_font(font)
             .expect("Could not find PDF font in font cache");
-        if let Some(color) = style.color() {
-            self.area.layer.set_fill_color(color);
-        } else if self.fill_color.is_some() {
-            self.area.layer.set_fill_color(Color::Rgb(0, 0, 0));
-        }
-        self.fill_color = style.color();
-        self.area.layer.set_font(font, style.font_size());
+        self.area.layer.set_fill_color(style.color());
+        self.set_font(font, style.font_size());
 
         self.area
             .layer
@@ -702,9 +745,6 @@ impl<'f, 'p> TextSection<'f, 'p> {
 
 impl<'f, 'p> Drop for TextSection<'f, 'p> {
     fn drop(&mut self) {
-        if self.fill_color.is_some() {
-            self.area.layer.set_fill_color(Color::Rgb(0, 0, 0));
-        }
         self.area.layer.end_text_section();
     }
 }
