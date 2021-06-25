@@ -652,17 +652,16 @@ impl<'f, 'p> TextSection<'f, 'p> {
             return None;
         }
 
-        let section = TextSection {
+        area.layer.begin_text_section();
+        area.layer.set_line_height(metrics.line_height);
+
+        Some(TextSection {
             font_cache,
             area,
             is_first: true,
             metrics,
             font: None,
-        };
-
-        section.area.layer.begin_text_section();
-        section.area.layer.set_line_height(metrics.line_height);
-        Some(section)
+        })
     }
 
     fn set_text_cursor(&self, x_offset: Mm) {
