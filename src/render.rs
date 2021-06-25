@@ -419,7 +419,10 @@ impl<'p> Area<'p> {
     /// Draws a line with the given points and the given line style.
     ///
     /// The points are relative to the upper left corner of the area.
-    pub fn draw_line(&self, points: Vec<Position>, line_style: LineStyle) {
+    pub fn draw_line<I>(&self, points: I, line_style: LineStyle)
+    where
+        I: IntoIterator<Item = Position>,
+    {
         let line_points: Vec<_> = points
             .into_iter()
             .map(|pos| (self.transform_position(pos).into(), false))

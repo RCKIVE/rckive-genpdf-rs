@@ -28,6 +28,7 @@ SPDX-License-Identifier: CC0-1.0
 - Refactor the `render` module:
   - Change the `Layer`, `Area` and `TextSection` lifetimes.
   - Store a reference to the current `Page` in `Layer`.
+  - Accept a point iterator instead of a point vector in `Area::draw_line`.
 
 ## Non-Breaking Changes
 
