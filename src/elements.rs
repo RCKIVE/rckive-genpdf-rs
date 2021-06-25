@@ -349,11 +349,7 @@ impl Element for Paragraph {
             let metrics = line
                 .iter()
                 .map(|s| s.style.metrics(&context.font_cache))
-                .fold(fonts::Metrics::default(), |mut max, m| {
-                    max.line_height = max.line_height.max(m.line_height);
-                    max.glyph_height = max.glyph_height.max(m.glyph_height);
-                    max
-                });
+                .fold(fonts::Metrics::default(), |max, m| max.max(&m));
             let position = Position::new(self.get_offset(width, area.size().width), 0);
 
             if let Some(mut section) = area.text_section(&context.font_cache, position, metrics) {

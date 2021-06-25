@@ -52,6 +52,7 @@ SPDX-License-Identifier: CC0-1.0
 ## Bug Fixes
 
 - Return an error if a paragraph overflows.
+- Use the ascent instead of the glyph height for vertical positioning of text.
 
 # v0.2.0 (2021-06-17)
 

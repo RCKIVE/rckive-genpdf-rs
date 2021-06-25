@@ -333,6 +333,7 @@ pub struct Font {
     scale: rusttype::Scale,
     line_height: Mm,
     glyph_height: Mm,
+    ascent: Mm,
 }
 
 impl Font {
@@ -345,6 +346,7 @@ impl Font {
         let glyph_height = (v_metrics.ascent - v_metrics.descent) / units_per_em;
         let scale = rusttype::Scale::uniform(glyph_height);
 
+        let ascent = v_metrics.ascent / units_per_em;
         let line_height = glyph_height + v_metrics.line_gap / units_per_em;
 
         Font {
@@ -353,6 +355,7 @@ impl Font {
             scale,
             line_height: printpdf::Pt(f64::from(line_height)).into(),
             glyph_height: printpdf::Pt(f64::from(glyph_height)).into(),
+            ascent: printpdf::Pt(f64::from(ascent)).into(),
         }
     }
 
@@ -369,6 +372,11 @@ impl Font {
     /// Returns the glyph height for text with this font and the given font size.
     pub fn glyph_height(&self, font_size: u8) -> Mm {
         self.glyph_height * f64::from(font_size)
+    }
+
+    /// Returns the ascent for text with this font and the given font size.
+    pub fn ascent(&self, font_size: u8) -> Mm {
+        self.ascent * f64::from(font_size)
     }
 
     /// Returns the width of a character with this font and the given font size.
@@ -471,6 +479,7 @@ impl Font {
         Metrics::new(
             self.line_height * f64::from(font_size),
             self.glyph_height * f64::from(font_size),
+            self.ascent * f64::from(font_size),
         )
     }
 }
@@ -520,14 +529,26 @@ pub struct Metrics {
     pub line_height: Mm,
     /// The glyph height of the font at a given scale.
     pub glyph_height: Mm,
+    /// The ascent of the font at a given scale.
+    pub ascent: Mm,
 }
 
 impl Metrics {
     /// Create a new metrics instance with the given heights.
-    pub fn new(line_height: Mm, glyph_height: Mm) -> Metrics {
+    pub fn new(line_height: Mm, glyph_height: Mm, ascent: Mm) -> Metrics {
         Metrics {
             line_height,
             glyph_height,
+            ascent,
+        }
+    }
+
+    /// Returns the maximum metrics from two metrics instances.
+    pub fn max(&self, other: &Self) -> Self {
+        Self {
+            line_height: self.line_height.max(other.line_height),
+            glyph_height: self.glyph_height.max(other.glyph_height),
+            ascent: self.ascent.max(other.ascent),
         }
     }
 }

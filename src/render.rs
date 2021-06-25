@@ -667,7 +667,7 @@ impl<'f, 'p> TextSection<'f, 'p> {
     fn set_text_cursor(&self, x_offset: Mm) {
         let cursor = self
             .area
-            .position(Position::new(x_offset, self.metrics.glyph_height));
+            .position(Position::new(x_offset, self.metrics.ascent));
         self.area.layer.set_text_cursor(cursor);
     }
 
