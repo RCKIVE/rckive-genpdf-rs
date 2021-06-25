@@ -21,6 +21,7 @@
 use std::cell;
 use std::io;
 use std::ops;
+use std::rc;
 
 use crate::error::{Context as _, Error, ErrorKind};
 use crate::fonts;
@@ -243,46 +244,47 @@ impl Page {
             let layer = self
                 .page
                 .add_layer(format!("Layer {}", self.layers.len() + 1));
-            self.layers.push(layer.clone());
-            layer
+            self.layers.push(layer)
         });
         Layer::new(self, layer)
     }
 }
 
 #[derive(Debug)]
-struct Layers(cell::RefCell<Vec<printpdf::PdfLayerReference>>);
+struct Layers(cell::RefCell<Vec<rc::Rc<LayerData>>>);
 
 impl Layers {
     pub fn new(layer: printpdf::PdfLayerReference) -> Self {
-        Self(vec![layer].into())
+        Self(vec![LayerData::from(layer).into()].into())
     }
 
     pub fn len(&self) -> usize {
         self.0.borrow().len()
     }
 
-    pub fn first(&self) -> printpdf::PdfLayerReference {
+    pub fn first(&self) -> rc::Rc<LayerData> {
         self.0.borrow().first().unwrap().clone()
     }
 
-    pub fn last(&self) -> printpdf::PdfLayerReference {
+    pub fn last(&self) -> rc::Rc<LayerData> {
         self.0.borrow().last().unwrap().clone()
     }
 
-    pub fn get(&self, idx: usize) -> Option<printpdf::PdfLayerReference> {
+    pub fn get(&self, idx: usize) -> Option<rc::Rc<LayerData>> {
         self.0.borrow().get(idx).cloned()
     }
 
-    pub fn push(&self, layer: printpdf::PdfLayerReference) {
-        self.0.borrow_mut().push(layer)
+    pub fn push(&self, layer: printpdf::PdfLayerReference) -> rc::Rc<LayerData> {
+        let layer_data = rc::Rc::from(LayerData::from(layer));
+        self.0.borrow_mut().push(layer_data.clone());
+        layer_data
     }
 
-    pub fn next(&self, layer: &printpdf::PdfLayerReference) -> Option<printpdf::PdfLayerReference> {
+    pub fn next(&self, layer: &printpdf::PdfLayerReference) -> Option<rc::Rc<LayerData>> {
         self.0
             .borrow()
             .iter()
-            .skip_while(|l| l.layer != layer.layer)
+            .skip_while(|l| l.layer.layer != layer.layer)
             .nth(1)
             .cloned()
     }
@@ -296,12 +298,12 @@ impl Layers {
 #[derive(Clone)]
 pub struct Layer<'p> {
     page: &'p Page,
-    layer: printpdf::PdfLayerReference,
+    data: rc::Rc<LayerData>,
 }
 
 impl<'p> Layer<'p> {
-    fn new(page: &'p Page, layer: printpdf::PdfLayerReference) -> Layer<'p> {
-        Layer { page, layer }
+    fn new(page: &'p Page, data: rc::Rc<LayerData>) -> Layer<'p> {
+        Layer { page, data }
     }
 
     /// Returns the next layer of this page.
@@ -309,7 +311,7 @@ impl<'p> Layer<'p> {
     /// If this layer is not the last layer, the existing next layer is used.  If it is the last
     /// layer, a new layer is created and added to the page.
     pub fn next(&self) -> Layer<'p> {
-        self.page.next_layer(&self.layer)
+        self.page.next_layer(&self.data.layer)
     }
 
     /// Returns a drawable area for this layer.
@@ -329,7 +331,7 @@ impl<'p> Layer<'p> {
         let dynamic_image = printpdf::Image::from_dynamic_image(image);
         let position = self.transform_position(position);
         dynamic_image.add_to_layer(
-            self.layer.clone(),
+            self.data.layer.clone(),
             Some(position.x.into()),
             Some(position.y.into()),
             rotation.into(),
@@ -354,45 +356,45 @@ impl<'p> Layer<'p> {
             has_stroke: true,
             is_clipping_path: false,
         };
-        self.layer.add_shape(line);
+        self.data.layer.add_shape(line);
     }
 
     fn set_fill_color(&self, color: Color) {
-        self.layer.set_fill_color(color.into());
+        self.data.layer.set_fill_color(color.into());
     }
 
     fn set_outline_thickness(&self, thickness: Mm) {
-        self.layer
+        self.data.layer
             .set_outline_thickness(printpdf::Pt::from(thickness).0);
     }
 
     fn set_outline_color(&self, color: Color) {
-        self.layer.set_outline_color(color.into());
+        self.data.layer.set_outline_color(color.into());
     }
 
     fn set_text_cursor(&self, cursor: LayerPosition) {
         let cursor = self.transform_position(cursor);
-        self.layer.set_text_cursor(cursor.x.into(), cursor.y.into());
+        self.data.layer.set_text_cursor(cursor.x.into(), cursor.y.into());
     }
 
     fn begin_text_section(&self) {
-        self.layer.begin_text_section();
+        self.data.layer.begin_text_section();
     }
 
     fn end_text_section(&self) {
-        self.layer.end_text_section();
+        self.data.layer.end_text_section();
     }
 
     fn add_line_break(&self) {
-        self.layer.add_line_break();
+        self.data.layer.add_line_break();
     }
 
     fn set_line_height(&self, line_height: Mm) {
-        self.layer.set_line_height(line_height.0);
+        self.data.layer.set_line_height(line_height.0);
     }
 
     fn set_font(&self, font: &printpdf::IndirectFontRef, font_size: u8) {
-        self.layer.set_font(font, font_size.into());
+        self.data.layer.set_font(font, font_size.into());
     }
 
     fn write_positioned_codepoints<P, C>(&self, positions: P, codepoints: C)
@@ -400,7 +402,7 @@ impl<'p> Layer<'p> {
         P: IntoIterator<Item = i64>,
         C: IntoIterator<Item = u16>,
     {
-        self.layer
+        self.data.layer
             .write_positioned_codepoints(positions.into_iter().zip(codepoints.into_iter()));
     }
 
@@ -408,6 +410,17 @@ impl<'p> Layer<'p> {
     /// position that is relative to the lower left corner of the layer (as used by `printpdf`).
     fn transform_position(&self, position: LayerPosition) -> UserSpacePosition {
         UserSpacePosition::from_layer(self, position)
+    }
+}
+
+#[derive(Debug)]
+struct LayerData {
+    layer: printpdf::PdfLayerReference,
+}
+
+impl From<printpdf::PdfLayerReference> for LayerData {
+    fn from(layer: printpdf::PdfLayerReference) -> Self {
+        Self { layer }
     }
 }
 
