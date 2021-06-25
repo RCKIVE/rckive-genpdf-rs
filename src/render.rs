@@ -20,6 +20,7 @@
 
 use std::cell;
 use std::io;
+use std::ops;
 
 use crate::error::{Context as _, Error, ErrorKind};
 use crate::fonts;
@@ -28,6 +29,38 @@ use crate::{Margins, Mm, Position, Size};
 
 #[cfg(feature = "images")]
 use crate::{Rotation, Scale};
+
+/// A position relative to the top left corner of a layer.
+struct LayerPosition(Position);
+
+impl LayerPosition {
+    pub fn from_area(area: &Area<'_>, position: Position) -> Self {
+        Self(position + area.origin)
+    }
+}
+
+/// A position relative to the bottom left corner of a layer (“user space” in PDF terms).
+struct UserSpacePosition(Position);
+
+impl UserSpacePosition {
+    pub fn from_layer(layer: &Layer<'_>, position: LayerPosition) -> Self {
+        Self(Position::new(position.0.x, layer.page.size.height - position.0.y))
+    }
+}
+
+impl From<UserSpacePosition> for printpdf::Point {
+    fn from(pos: UserSpacePosition) -> printpdf::Point {
+        printpdf::Point::new(pos.0.x.into(), pos.0.y.into())
+    }
+}
+
+impl ops::Deref for UserSpacePosition {
+    type Target = Position;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 /// Renders a PDF document with one or more pages.
 ///
@@ -283,9 +316,8 @@ impl<'p> Layer<'p> {
 
     /// Transforms the given position that is relative to the upper left corner of the layer to a
     /// position that is relative to the lower left corner of the layer (as used by `printpdf`).
-    fn transform_position(&self, mut position: Position) -> Position {
-        position.y = self.page.size.height - position.y;
-        position
+    fn transform_position(&self, position: LayerPosition) -> UserSpacePosition {
+        UserSpacePosition::from_layer(self, position)
     }
 }
 
@@ -477,11 +509,15 @@ impl<'p> Area<'p> {
         TextSection::new(font_cache, self.clone(), position, metrics)
     }
 
+    /// Returns a position relative to the top left corner of this area.
+    fn position(&self, position: Position) -> LayerPosition {
+        LayerPosition::from_area(self, position)
+    }
+
     /// Transforms the given position that is relative to the upper left corner of the area to a
     /// position that is relative to the lower left corner of its layer (as used by `printpdf`).
-    fn transform_position(&self, mut position: Position) -> Position {
-        position += self.origin;
-        self.layer.transform_position(position)
+    fn transform_position(&self, position: Position) -> UserSpacePosition {
+        self.layer.transform_position(self.position(position))
     }
 
     fn layer(&self) -> &printpdf::PdfLayerReference {
@@ -525,10 +561,10 @@ impl<'f, 'p> TextSection<'f, 'p> {
     }
 
     fn set_text_cursor(&mut self) {
-        let cursor_t = self.area.transform_position(self.position);
+        let cursor = self.area.transform_position(self.position + Position::new(0, self.metrics.glyph_height));
         self.layer().set_text_cursor(
-            cursor_t.x.into(),
-            (cursor_t.y - self.metrics.glyph_height).into(),
+            cursor.x.into(),
+            cursor.y.into(),
         );
     }
 

@@ -29,6 +29,7 @@ SPDX-License-Identifier: CC0-1.0
   - Change the `Layer`, `Area` and `TextSection` lifetimes.
   - Store a reference to the current `Page` in `Layer`.
   - Accept a point iterator instead of a point vector in `Area::draw_line`.
+- Remove the `From<Position>` implementation for `printpdf::Point`.
 
 ## Non-Breaking Changes
 
@@ -42,7 +43,9 @@ SPDX-License-Identifier: CC0-1.0
   alignment with different font sizes.
 - Add `set_creation_date` and `set_modification_date` methods to `Document` and
   `with_creation_date` and `with_modification_date` to `Renderer`.
-- Add basic test.
+- Add basic test suite.
+- Add the `UserSpacePosition` and `LayerPosition` structs to the `render`
+  module.
 
 ## Bug Fixes
 
