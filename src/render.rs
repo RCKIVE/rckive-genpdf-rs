@@ -44,7 +44,10 @@ struct UserSpacePosition(Position);
 
 impl UserSpacePosition {
     pub fn from_layer(layer: &Layer<'_>, position: LayerPosition) -> Self {
-        Self(Position::new(position.0.x, layer.page.size.height - position.0.y))
+        Self(Position::new(
+            position.0.x,
+            layer.page.size.height - position.0.y,
+        ))
     }
 }
 
@@ -314,6 +317,93 @@ impl<'p> Layer<'p> {
         Area::new(self.clone(), Position::default(), self.page.size)
     }
 
+    #[cfg(feature = "images")]
+    fn add_image(
+        &self,
+        image: &image::DynamicImage,
+        position: LayerPosition,
+        scale: Scale,
+        rotation: Rotation,
+        dpi: Option<f64>,
+    ) {
+        let dynamic_image = printpdf::Image::from_dynamic_image(image);
+        let position = self.transform_position(position);
+        dynamic_image.add_to_layer(
+            self.layer.clone(),
+            Some(position.x.into()),
+            Some(position.y.into()),
+            rotation.into(),
+            Some(scale.x),
+            Some(scale.y),
+            dpi,
+        );
+    }
+
+    fn add_line_shape<I>(&self, points: I)
+    where
+        I: IntoIterator<Item = LayerPosition>,
+    {
+        let line_points: Vec<_> = points
+            .into_iter()
+            .map(|pos| (self.transform_position(pos).into(), false))
+            .collect();
+        let line = printpdf::Line {
+            points: line_points,
+            is_closed: false,
+            has_fill: false,
+            has_stroke: true,
+            is_clipping_path: false,
+        };
+        self.layer.add_shape(line);
+    }
+
+    fn set_fill_color(&self, color: Color) {
+        self.layer.set_fill_color(color.into());
+    }
+
+    fn set_outline_thickness(&self, thickness: Mm) {
+        self.layer
+            .set_outline_thickness(printpdf::Pt::from(thickness).0);
+    }
+
+    fn set_outline_color(&self, color: Color) {
+        self.layer.set_outline_color(color.into());
+    }
+
+    fn set_text_cursor(&self, cursor: LayerPosition) {
+        let cursor = self.transform_position(cursor);
+        self.layer.set_text_cursor(cursor.x.into(), cursor.y.into());
+    }
+
+    fn begin_text_section(&self) {
+        self.layer.begin_text_section();
+    }
+
+    fn end_text_section(&self) {
+        self.layer.end_text_section();
+    }
+
+    fn add_line_break(&self) {
+        self.layer.add_line_break();
+    }
+
+    fn set_line_height(&self, line_height: Mm) {
+        self.layer.set_line_height(line_height.0);
+    }
+
+    fn set_font(&self, font: &printpdf::IndirectFontRef, font_size: u8) {
+        self.layer.set_font(font, font_size.into());
+    }
+
+    fn write_positioned_codepoints<P, C>(&self, positions: P, codepoints: C)
+    where
+        P: IntoIterator<Item = i64>,
+        C: IntoIterator<Item = u16>,
+    {
+        self.layer
+            .write_positioned_codepoints(positions.into_iter().zip(codepoints.into_iter()));
+    }
+
     /// Transforms the given position that is relative to the upper left corner of the layer to a
     /// position that is relative to the lower left corner of the layer (as used by `printpdf`).
     fn transform_position(&self, position: LayerPosition) -> UserSpacePosition {
@@ -434,18 +524,8 @@ impl<'p> Area<'p> {
         rotation: Rotation,
         dpi: Option<f64>,
     ) {
-        let dynamic_image = printpdf::Image::from_dynamic_image(image);
-        let real_position = self.transform_position(position);
-        let layer = self.layer().clone();
-        dynamic_image.add_to_layer(
-            layer,
-            Some(real_position.x.into()),
-            Some(real_position.y.into()),
-            rotation.into(),
-            Some(scale.x),
-            Some(scale.y),
-            dpi,
-        );
+        self.layer
+            .add_image(image, self.position(position), scale, rotation, dpi);
     }
 
     /// Draws a line with the given points and the given line style.
@@ -455,22 +535,10 @@ impl<'p> Area<'p> {
     where
         I: IntoIterator<Item = Position>,
     {
-        let line_points: Vec<_> = points
-            .into_iter()
-            .map(|pos| (self.transform_position(pos).into(), false))
-            .collect();
-        let line = printpdf::Line {
-            points: line_points,
-            is_closed: false,
-            has_fill: false,
-            has_stroke: true,
-            is_clipping_path: false,
-        };
-        self.layer()
-            .set_outline_thickness(printpdf::Pt::from(line_style.thickness()).0);
-        self.layer().set_outline_color(line_style.color().into());
-
-        self.layer().add_shape(line);
+        self.layer.set_outline_thickness(line_style.thickness());
+        self.layer.set_outline_color(line_style.color());
+        self.layer
+            .add_line_shape(points.into_iter().map(|pos| self.position(pos)));
     }
 
     /// Tries to draw the given string at the given position and returns `true` if the area was
@@ -513,16 +581,6 @@ impl<'p> Area<'p> {
     fn position(&self, position: Position) -> LayerPosition {
         LayerPosition::from_area(self, position)
     }
-
-    /// Transforms the given position that is relative to the upper left corner of the area to a
-    /// position that is relative to the lower left corner of its layer (as used by `printpdf`).
-    fn transform_position(&self, position: Position) -> UserSpacePosition {
-        self.layer.transform_position(self.position(position))
-    }
-
-    fn layer(&self) -> &printpdf::PdfLayerReference {
-        &self.layer.layer
-    }
 }
 
 /// A text section that is drawn on an area of a PDF layer.
@@ -555,17 +613,16 @@ impl<'f, 'p> TextSection<'f, 'p> {
             metrics,
         };
 
-        section.layer().begin_text_section();
-        section.layer().set_line_height(metrics.line_height.into());
+        section.area.layer.begin_text_section();
+        section.area.layer.set_line_height(metrics.line_height);
         Some(section)
     }
 
     fn set_text_cursor(&mut self) {
-        let cursor = self.area.transform_position(self.position + Position::new(0, self.metrics.glyph_height));
-        self.layer().set_text_cursor(
-            cursor.x.into(),
-            cursor.y.into(),
-        );
+        let cursor = self
+            .area
+            .position(self.position + Position::new(0, self.metrics.glyph_height));
+        self.area.layer.set_text_cursor(cursor);
     }
 
     /// Tries to add a new line and returns `true` if the area was large enough to fit the new
@@ -575,7 +632,7 @@ impl<'f, 'p> TextSection<'f, 'p> {
         if self.position.y + self.metrics.line_height > self.area.size.height {
             false
         } else {
-            self.layer().add_line_break();
+            self.area.layer.add_line_break();
             self.position.y += self.metrics.line_height;
             true
         }
@@ -616,29 +673,26 @@ impl<'f, 'p> TextSection<'f, 'p> {
             .get_pdf_font(font)
             .expect("Could not find PDF font in font cache");
         if let Some(color) = style.color() {
-            self.layer().set_fill_color(color.into());
+            self.area.layer.set_fill_color(color);
         } else if self.fill_color.is_some() {
-            self.layer().set_fill_color(Color::Rgb(0, 0, 0).into());
+            self.area.layer.set_fill_color(Color::Rgb(0, 0, 0));
         }
         self.fill_color = style.color();
-        self.layer().set_font(font, style.font_size().into());
+        self.area.layer.set_font(font, style.font_size());
 
-        self.layer()
-            .write_positioned_codepoints(positions.zip(codepoints.iter().copied()));
+        self.area
+            .layer
+            .write_positioned_codepoints(positions, codepoints);
         Ok(())
-    }
-
-    fn layer(&self) -> &printpdf::PdfLayerReference {
-        self.area.layer()
     }
 }
 
 impl<'f, 'p> Drop for TextSection<'f, 'p> {
     fn drop(&mut self) {
         if self.fill_color.is_some() {
-            self.layer().set_fill_color(Color::Rgb(0, 0, 0).into());
+            self.area.layer.set_fill_color(Color::Rgb(0, 0, 0));
         }
-        self.layer().end_text_section();
+        self.area.layer.end_text_section();
     }
 }
 
