@@ -622,7 +622,9 @@ impl<'p> Area<'p> {
         position: Position,
         metrics: fonts::Metrics,
     ) -> Option<TextSection<'f, 'p>> {
-        TextSection::new(font_cache, self.clone(), position, metrics)
+        let mut area = self.clone();
+        area.add_offset(position);
+        TextSection::new(font_cache, area, metrics)
     }
 
     /// Returns a position relative to the top left corner of this area.
@@ -635,7 +637,6 @@ impl<'p> Area<'p> {
 pub struct TextSection<'f, 'p> {
     font_cache: &'f fonts::FontCache,
     area: Area<'p>,
-    position: Position,
     is_first: bool,
     metrics: fonts::Metrics,
     font: Option<(printpdf::IndirectFontRef, u8)>,
@@ -645,17 +646,15 @@ impl<'f, 'p> TextSection<'f, 'p> {
     fn new(
         font_cache: &'f fonts::FontCache,
         area: Area<'p>,
-        position: Position,
         metrics: fonts::Metrics,
     ) -> Option<TextSection<'f, 'p>> {
-        if position.y + metrics.glyph_height > area.size.height {
+        if metrics.glyph_height > area.size.height {
             return None;
         }
 
         let section = TextSection {
             font_cache,
             area,
-            position,
             is_first: true,
             metrics,
             font: None,
@@ -666,10 +665,10 @@ impl<'f, 'p> TextSection<'f, 'p> {
         Some(section)
     }
 
-    fn set_text_cursor(&self) {
+    fn set_text_cursor(&self, x_offset: Mm) {
         let cursor = self
             .area
-            .position(self.position + Position::new(0, self.metrics.glyph_height));
+            .position(Position::new(x_offset, self.metrics.glyph_height));
         self.area.layer.set_text_cursor(cursor);
     }
 
@@ -690,11 +689,11 @@ impl<'f, 'p> TextSection<'f, 'p> {
     /// line.
     #[must_use]
     pub fn add_newline(&mut self) -> bool {
-        if self.position.y + self.metrics.line_height > self.area.size.height {
+        if self.metrics.line_height > self.area.size.height {
             false
         } else {
             self.area.layer.add_line_break();
-            self.position.y += self.metrics.line_height;
+            self.area.add_offset((0, self.metrics.line_height));
             true
         }
     }
@@ -708,11 +707,12 @@ impl<'f, 'p> TextSection<'f, 'p> {
 
         // Adjust cursor to remove left bearing of the first character of the first string
         if self.is_first {
-            if let Some(first_c) = s.chars().next() {
-                let l_bearing = style.char_left_side_bearing(self.font_cache, first_c);
-                self.position.x -= l_bearing;
-            }
-            self.set_text_cursor();
+            let x_offset = if let Some(first_c) = s.chars().next() {
+                style.char_left_side_bearing(self.font_cache, first_c) * -1.0
+            } else {
+                Mm(0.0)
+            };
+            self.set_text_cursor(x_offset);
         }
         self.is_first = false;
 
