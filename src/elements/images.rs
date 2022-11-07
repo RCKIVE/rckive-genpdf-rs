@@ -6,7 +6,7 @@
 
 use std::path;
 
-use image::GenericImageView;
+use printpdf::image_crate::GenericImageView;
 
 use crate::error::{Context as _, Error, ErrorKind};
 use crate::{render, style};
@@ -44,7 +44,7 @@ use crate::{Alignment, Context, Element, Mm, Position, RenderResult, Rotation, S
 /// [`printpdf` issue #98]: https://github.com/fschutt/printpdf/issues/98
 #[derive(Clone)]
 pub struct Image {
-    data: image::DynamicImage,
+    data: printpdf::image_crate::DynamicImage,
 
     /// Used for positioning if no absolute position is given.
     alignment: Alignment,
@@ -66,7 +66,7 @@ pub struct Image {
 
 impl Image {
     /// Creates a new image from an already loaded image.
-    pub fn from_dynamic_image(data: image::DynamicImage) -> Result<Self, Error> {
+    pub fn from_dynamic_image(data: printpdf::image_crate::DynamicImage) -> Result<Self, Error> {
         if data.color().has_alpha() {
             Err(Error::new(
                 "Images with an alpha channel are not supported",
@@ -84,7 +84,7 @@ impl Image {
         }
     }
 
-    fn from_image_reader<R>(reader: image::io::Reader<R>) -> Result<Self, Error>
+    fn from_image_reader<R>(reader: printpdf::image_crate::io::Reader<R>) -> Result<Self, Error>
     where
         R: std::io::BufRead,
         R: std::io::Read,
@@ -105,13 +105,13 @@ impl Image {
         R: std::io::Read,
         R: std::io::Seek,
     {
-        Self::from_image_reader(image::io::Reader::new(reader))
+        Self::from_image_reader(printpdf::image_crate::io::Reader::new(reader))
     }
 
     /// Creates a new image by reading from the given path.
     pub fn from_path(path: impl AsRef<path::Path>) -> Result<Self, Error> {
         let path = path.as_ref();
-        let reader = image::io::Reader::open(path)
+        let reader = printpdf::image_crate::io::Reader::open(path)
             .with_context(|| format!("Could not read image from path {}", path.display()))?;
         Self::from_image_reader(reader)
     }

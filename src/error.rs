@@ -84,7 +84,7 @@ impl error::Error for Error {
             ErrorKind::IoError(err) => Some(err),
             ErrorKind::PdfError(err) => Some(err),
             ErrorKind::PdfIndexError(err) => Some(err),
-            ErrorKind::RusttypeError(err) => Some(err),
+            ErrorKind::FaceParsingError(err) => Some(err),
             #[cfg(feature = "images")]
             ErrorKind::ImageError(err) => Some(err),
         }
@@ -111,13 +111,13 @@ pub enum ErrorKind {
     PdfError(printpdf::PdfError),
     /// An error caused by an invalid index in `printpdf`.
     PdfIndexError(printpdf::IndexError),
-    /// An error caused by `rusttype`.
-    RusttypeError(rusttype::Error),
+    /// An error caused by `printpdf` failing parse a font face through `ttf_parser`.
+    FaceParsingError(ttf_parser::FaceParsingError),
     /// An error caused by `image`.
     ///
     /// *Only available if the `images` feature is enabled.*
     #[cfg(feature = "images")]
-    ImageError(image::ImageError),
+    ImageError(printpdf::image_crate::ImageError),
 }
 
 impl From<io::Error> for ErrorKind {
@@ -130,9 +130,9 @@ impl From<printpdf::Error> for ErrorKind {
     fn from(error: printpdf::Error) -> ErrorKind {
         match error {
             printpdf::Error::Io(err) => err.into(),
-            printpdf::Error::Rusttype(err) => err.into(),
             printpdf::Error::Pdf(err) => err.into(),
             printpdf::Error::Index(err) => err.into(),
+            printpdf::Error::FaceParsing(err) => err.into(),
         }
     }
 }
@@ -149,15 +149,15 @@ impl From<printpdf::PdfError> for ErrorKind {
     }
 }
 
-impl From<rusttype::Error> for ErrorKind {
-    fn from(error: rusttype::Error) -> ErrorKind {
-        ErrorKind::RusttypeError(error)
+impl From<ttf_parser::FaceParsingError> for ErrorKind {
+    fn from(error: ttf_parser::FaceParsingError) -> ErrorKind {
+        ErrorKind::FaceParsingError(error)
     }
 }
 
 #[cfg(feature = "images")]
-impl From<image::ImageError> for ErrorKind {
-    fn from(error: image::ImageError) -> ErrorKind {
+impl From<printpdf::image_crate::ImageError> for ErrorKind {
+    fn from(error: printpdf::image_crate::ImageError) -> ErrorKind {
         ErrorKind::ImageError(error)
     }
 }
