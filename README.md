@@ -5,6 +5,8 @@ SPDX-License-Identifier: CC0-1.0
 
 # genpdf-rs
 
+> This is a clone by [RCKIVE](rckive.com), with automated package updates.
+
 A user-friendly PDF generator written in pure Rust.
 
 [Documentation](https://docs.rs/genpdf)

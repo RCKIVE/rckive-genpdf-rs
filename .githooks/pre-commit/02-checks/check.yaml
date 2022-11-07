@@ -1,0 +1,6 @@
+version: 1
+cmd: "cargo"
+args:
+  - "check"
+  - "--release"
+  - "--all-features"
