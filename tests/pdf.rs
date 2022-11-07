@@ -56,7 +56,7 @@ fn check(name: &str, doc: genpdf::Document) {
     if expected_path.exists() {
         let expected_doc = std::fs::read(&expected_path).expect("Failed to read expected document");
         if actual_doc != expected_doc {
-            let actual_path = expected_path.with_extension("pdf.new");
+            let actual_path = expected_path.with_extension("new.pdf");
             std::fs::write(&actual_path, actual_doc).expect("Failed to write actual document");
             panic!(
                 "Actual document does not match expected document.  Please check {} \
