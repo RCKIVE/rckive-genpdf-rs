@@ -25,11 +25,6 @@ lopdf = "0.26"
 rusttype = "0.9"
 ttf-parser = "0.12.3"
 
-[dependencies.image]
-default-features = false
-optional = true
-version = "0.23.12"
-
 [dependencies.hyphenation]
 optional = true
 version = "0.8"
@@ -54,7 +49,7 @@ version = "0.8"
 
 [features]
 default = []
-images = ["image", "printpdf/embedded_images"]
+images = ["printpdf/embedded_images"]
 
 [package.metadata.docs.rs]
 all-features = true
