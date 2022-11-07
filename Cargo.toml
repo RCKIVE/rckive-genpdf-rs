@@ -43,7 +43,7 @@ default-features = false
 features = ["add", "add_assign", "from", "into", "mul", "mul_assign", "sum"]
 
 [dev-dependencies.float-cmp]
-version = "0.8"
+version = "0.9"
 default-features = false
 features = ["std"]
 
