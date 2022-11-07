@@ -5,21 +5,22 @@ SPDX-License-Identifier: CC0-1.0
 
 # genpdf-rs
 
-> This is a clone by [RCKIVE](rckive.com), with automated package updates.
+> This is a fork by [RCKIVE](rckive.com), with automated package updates.
 
 A user-friendly PDF generator written in pure Rust.
 
 [Documentation](https://docs.rs/genpdf)
 
 `genpdf` is a high-level PDF generator built on top of [`printpdf`][] and
-[`rusttype`][].  It takes care of the page layout and text alignment and
-renders a document tree into a PDF document.  All of its dependencies are
+[`rusttype`][]. It takes care of the page layout and text alignment and
+renders a document tree into a PDF document. All of its dependencies are
 written in Rust, so you don’t need any pre-installed libraries or tools.
 
 [`printpdf`]: https://lib.rs/crates/printpdf
 [`rusttype`]: https://lib.rs/crates/rusttype
 
 <!-- Keep in sync with src/lib.rs -->
+
 ```rust
 // Load a font from the file system
 let font_family = genpdf::fonts::from_files("./fonts", "LiberationSans", None)
@@ -42,7 +43,7 @@ For a complete example with all supported elements, see the
 [`examples/demo.rs`][] file that generates [this PDF document][].
 
 [`examples/demo.rs`]: https://git.sr.ht/~ireas/genpdf-rs/tree/master/examples/demo.rs
-[this PDF document]: https://genpdf-rs.ireas.org/examples/demo.pdf
+[this pdf document]: https://genpdf-rs.ireas.org/examples/demo.pdf
 
 For more information, see the [API documentation](https://docs.rs/genpdf).
 
@@ -62,7 +63,7 @@ For more information, see the [API documentation](https://docs.rs/genpdf).
 This crate has the following Cargo features (deactivated per default):
 
 - `images`: Adds support for embedding images using the [`image`][] crate.
-- `hyphenation`:  Adds support for hyphenation using the [`hyphenation`][] crate.
+- `hyphenation`: Adds support for hyphenation using the [`hyphenation`][] crate.
 
 [`hyphenation`]: https://lib.rs/crates/hyphenation
 [`image`]: https://lib.rs/crates/image
@@ -70,6 +71,7 @@ This crate has the following Cargo features (deactivated per default):
 ## Roadmap
 
 These features are currently not supported but planned for future versions:
+
 - Improved support for drawing shapes
 - Advanced text formatting
 
@@ -77,17 +79,17 @@ See also the [`genpdf-rs` issue tracker](https://todo.sr.ht/~ireas/genpdf-rs).
 
 ## Alternatives
 
-- [`printpdf`][] is the low-level PDF library used by `genpdf`.  It provides
+- [`printpdf`][] is the low-level PDF library used by `genpdf`. It provides
   more control over the generated document, but you have to take care of all
   details like calculating the width and height of the rendered text, arranging
   the elements and distributing them on multiple pages.
-- [`latex`][] generates LaTeX documents from Rust.  It requires a LaTex
-  installation to generate the PDF files.  Also, escaping user input is a
+- [`latex`][] generates LaTeX documents from Rust. It requires a LaTex
+  installation to generate the PDF files. Also, escaping user input is a
   non-trivial problem and not supported by the crate.
-- [`tectonic`][] is a TeX engine based on XeTeX.  It is partly written in C and
+- [`tectonic`][] is a TeX engine based on XeTeX. It is partly written in C and
   has some non-Rust dependencies.
 - [`wkhtmltopdf`][] generates PDF documents from HTML using the `wkhtmltox`
-  library.  It requires a pre-installed library and does not support custom
+  library. It requires a pre-installed library and does not support custom
   elements.
 
 [`latex`]: https://lib.rs/crates/latex
@@ -100,14 +102,14 @@ This crate supports at least Rust 1.45.0 or later.
 
 ## Contributing
 
-Contributions to this project are welcome!  Please submit patches to the
+Contributions to this project are welcome! Please submit patches to the
 mailing list [~ireas/public-inbox@lists.sr.ht][] ([archive][]) using the
-`[PATCH genpdf-rs]` subject prefix.  For more information, see the
+`[PATCH genpdf-rs]` subject prefix. For more information, see the
 [Contributing Guide][].
 
 [~ireas/public-inbox@lists.sr.ht]: mailto:~ireas/public-inbox@lists.sr.ht
 [archive]: https://lists.sr.ht/~ireas/public-inbox
-[Contributing Guide]: https://man.sr.ht/~ireas/guides/contributing.md
+[contributing guide]: https://man.sr.ht/~ireas/guides/contributing.md
 
 If you are looking for a good starting point, have a look at the [issues with
 the label “good first issue”][issues] in `genpdf-rs`’s issue tracker.
@@ -124,12 +126,12 @@ prefix in the subject.
 
 This project is dual-licensed under the [Apache-2.0][] and [MIT][] licenses.
 The documentation and examples contained in this repository are licensed under
-the [Creative Commons Zero][CC0] license.  You can find a copy of the license
+the [Creative Commons Zero][cc0] license. You can find a copy of the license
 texts in the `LICENSES` directory.
 
 `genpdf-rs` complies with [version 3.0 of the REUSE specification][reuse].
 
-[Apache-2.0]: https://opensource.org/licenses/Apache-2.0
-[MIT]: https://opensource.org/licenses/MIT
-[CC0]: https://creativecommons.org/publicdomain/zero/1.0/
+[apache-2.0]: https://opensource.org/licenses/Apache-2.0
+[mit]: https://opensource.org/licenses/MIT
+[cc0]: https://creativecommons.org/publicdomain/zero/1.0/
 [reuse]: https://reuse.software/practices/3.0/
