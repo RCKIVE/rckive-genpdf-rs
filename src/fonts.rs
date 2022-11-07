@@ -131,7 +131,7 @@ impl FontCache {
         for font in &self.fonts {
             let pdf_font = match &font.raw_data {
                 RawFontData::Builtin(builtin) => renderer.add_builtin_font(*builtin)?,
-                RawFontData::Embedded(data) => renderer.add_embedded_font(&data)?,
+                RawFontData::Embedded(data) => renderer.add_embedded_font(data)?,
             };
             self.pdf_fonts.push(pdf_font);
         }
@@ -256,7 +256,7 @@ impl fmt::Display for FontStyle {
 /// file:  Times, Helvetica and Courier.
 ///
 /// See the [module documentation](index.html) for more information.
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Builtin {
     /// The Times font family.
     Times,
@@ -294,7 +294,7 @@ impl Builtin {
 /// A collection of fonts with different styles.
 ///
 /// See the [module documentation](index.html) for details on the internals.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FontFamily<T: Clone + fmt::Debug> {
     /// The regular variant of this font family.
     pub regular: T,

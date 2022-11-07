@@ -48,7 +48,7 @@ impl<'c, 's, I: Iterator<Item = style::StyledStr<'s>>> Iterator for Wrapper<'c, 
 
     fn next(&mut self) -> Option<(Vec<style::StyledCow<'s>>, usize)> {
         // Append words to self.buf until the maximum line length is reached
-        while let Some(s) = self.iter.next() {
+        for s in self.iter.by_ref() {
             let mut width = s.width(&self.context.font_cache);
 
             if self.x + width > self.width {

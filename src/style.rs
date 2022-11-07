@@ -81,7 +81,7 @@ impl From<Color> for printpdf::Color {
 }
 
 /// A text effect (bold or italic).
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Effect {
     /// Bold text.
     Bold,
@@ -452,7 +452,7 @@ impl<'s> StyledStr<'s> {
     ///
     /// [`FontCache`]: ../fonts/struct.FontCache.html
     pub fn width(&self, font_cache: &fonts::FontCache) -> Mm {
-        self.style.str_width(font_cache, &self.s)
+        self.style.str_width(font_cache, self.s)
     }
 }
 

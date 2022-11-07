@@ -725,7 +725,7 @@ impl<'f, 'p> TextSection<'f, 'p> {
             // Built-in fonts always use the Windows-1252 encoding
             encode_win1252(s)?
         } else {
-            font.glyph_ids(&self.font_cache, s.chars())
+            font.glyph_ids(self.font_cache, s.chars())
         };
 
         let font = self
