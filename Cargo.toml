@@ -22,7 +22,7 @@ required-features = ["images"]
 
 [dependencies]
 lopdf = "0.26"
-rusttype = "0.8"
+rusttype = "0.9"
 
 [dependencies.image]
 version = "0.23.12"
