@@ -56,7 +56,9 @@ jobs:
   tests:
     name: cargo test
     runs-on: ubuntu-22.04
-    container: ghcr.io/rckive/rckive-genpdf-rs-ci:renovate-printpdf-0.x
+    container:
+      image: ghcr.io/rckive/rckive-genpdf-rs-ci:renovate-printpdf-0.x
+      options: --security-opt seccomp=unconfined
     steps:
       - uses: actions/cache@v3
         with:
