@@ -74,11 +74,13 @@ jobs:
         with:
           command: test
 
+      - uses: mfinelli/setup-imagemagick@v2
+        if: failure()
       - name: Generate PDFs
         if: failure()
         run: |
           for file in $(find tests/files -name '*.pdf' -not -name '*.new.pdf'); do
-            convert \
+            magick convert \
               -density 300 \
               -define png:color-type=6 \
               -resize 25% \
@@ -90,7 +92,7 @@ jobs:
 
             NEW=$(echo $file | sed -e 's/.pdf/.new.pdf/')
 
-            convert \
+            magick convert \
               -density 300 \
               -define png:color-type=6 \
               -resize 25% \
@@ -100,8 +102,8 @@ jobs:
               -append \
               ${NEW}.png
 
-            compare ${file}.png ${NEW}.png -density 300 ${file}.diff.png
-            montage ${file}.png ${NEW}.png ${file}.diff.png -geometry +10+10 ${file}.montage.png
+            magick compare ${file}.png ${NEW}.png -density 300 ${file}.diff.png
+            magick montage ${file}.png ${NEW}.png ${file}.diff.png -geometry +10+10 ${file}.montage.png
           done
 
       - name: Save PDFs and diffs as artifacts
