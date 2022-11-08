@@ -142,3 +142,4 @@ jobs:
             PDF equality checking has failed.
 
             ${{ steps.generate-comparisons.outputs.pr_comment }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
