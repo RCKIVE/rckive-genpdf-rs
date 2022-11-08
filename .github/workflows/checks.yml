@@ -110,7 +110,10 @@ jobs:
               -append \
               ${NEW}.png
 
+            echo "Comparing ${FILE}.png against ${NEW}.png"
             magick compare ${FILE}.png ${NEW}.png ${FILE}.diff.png
+
+            echo "Montaging ${FILE}.png ${NEW}.png ${FILE}.diff.png"
             magick montage ${FILE}.png ${NEW}.png ${FILE}.diff.png -geometry +10+10 ${FILE}.montage.png
           done
 
