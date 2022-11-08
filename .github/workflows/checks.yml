@@ -121,6 +121,7 @@ jobs:
 
       - name: Save PDFs and diffs as artifacts
         uses: actions/upload-artifact@v3
+        if: failure()
         with:
           name: test-pdfs
           path: |
