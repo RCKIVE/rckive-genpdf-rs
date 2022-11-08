@@ -84,8 +84,6 @@ jobs:
 
       - name: Generate PDFs
         if: failure()
-        env:
-          MAGICK_DEBUG: All
         run: |
           for FILE in $(find tests/files -name '*.pdf' -not -name '*.new.pdf'); do
             echo "Converting file $FILE"
@@ -112,7 +110,7 @@ jobs:
               -append \
               ${NEW}.png
 
-            magick compare ${FILE}.png ${NEW}.png -density 300 ${FILE}.diff.png
+            magick compare ${FILE}.png ${NEW}.png ${FILE}.diff.png
             magick montage ${FILE}.png ${NEW}.png ${FILE}.diff.png -geometry +10+10 ${FILE}.montage.png
           done
 
