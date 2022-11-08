@@ -85,6 +85,7 @@ jobs:
       - name: Generate PDF comparisons
         if: failure()
         id: generate-comparisons
+        shell: bash
         run: |
           touch pr_comment.txt
 
