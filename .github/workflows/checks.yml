@@ -72,7 +72,15 @@ jobs:
 
       - uses: actions-rs/cargo@v1
         with:
-          command: test
+          command: install cargo-tarpaulin
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: tarpaulin --out Xml
+
+      - name: Upload coverage reports to Codecov with GitHub Action
+        if: always()
+        uses: codecov/codecov-action@v3
 
       - name: Install ImageMagick 7
         if: failure()
