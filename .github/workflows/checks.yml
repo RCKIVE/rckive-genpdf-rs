@@ -55,7 +55,7 @@ jobs:
 
   tests:
     name: cargo test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/cache@v3
         with:
@@ -74,8 +74,14 @@ jobs:
         with:
           command: test
 
-      - uses: mfinelli/setup-imagemagick@v2
+      - name: Install ImageMagick 7
         if: failure()
+        run: |
+          git clone https://github.com/SoftCreatR/imei && \
+          cd imei && \
+          chmod +x imei.sh && \
+          ./imei.sh --im-version 7.1.0-52
+
       - name: Generate PDFs
         if: failure()
         run: |
