@@ -73,3 +73,41 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
+
+      - name: Generate PDFs
+        if: failure()
+        run: |
+          for file in $(find tests/files -name '*.pdf' -not -name '*.new.pdf'); do
+            convert \
+              -density 300 \
+              -define png:color-type=6 \
+              -resize 25% \
+              $file \
+              -alpha remove \
+              -background white \
+              -append \
+              ${file}.png
+
+            NEW=$(echo $file | sed -e 's/.pdf/.new.pdf/')
+
+            convert \
+              -density 300 \
+              -define png:color-type=6 \
+              -resize 25% \
+              $NEW \
+              -alpha remove \
+              -background white \
+              -append \
+              ${NEW}.png
+
+            compare ${file}.png ${NEW}.png -density 300 ${file}.diff.png
+            montage ${file}.png ${NEW}.png ${file}.diff.png -geometry +10+10 ${file}.montage.png
+          done
+
+      - name: Save PDFs and diffs as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-pdfs
+          path: |
+            tests/files/*.pdf
+            tests/files/*.montage.png
