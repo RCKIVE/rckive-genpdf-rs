@@ -1,4 +1,4 @@
-name: Build base Dockerfile for CI
+name: Build Dockerfile for CI
 
 on:
   workflow_dispatch:
@@ -7,6 +7,7 @@ on:
     #   - "main"
     paths:
       - "Dockerfile.ci"
+      - ".github/workflows/runner-ci-docker.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,8 +18,8 @@ env:
   IMAGE_NAME: ${{ github.repository }}-ci
 
 jobs:
-  runner-base:
-    runs-on: ubuntu-latest
+  build-and-publish-docker:
+    runs-on: ubuntu-22.04
     permissions:
       contents: read
       packages: write
