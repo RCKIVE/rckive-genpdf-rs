@@ -56,9 +56,7 @@ jobs:
   tests:
     name: cargo test
     runs-on: ubuntu-22.04
-    container:
-      image: xd009642/tarpaulin:develop-nightly
-      options: --security-opt seccomp=unconfined
+    container: ghcr.io/rckive/rckive-genpdf-rs-ci:main
     steps:
       - uses: actions/cache@v3
         with:
@@ -78,33 +76,28 @@ jobs:
           cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out Xml
 
       - name: Upload coverage reports to Codecov with GitHub Action
-        if: always()
         uses: codecov/codecov-action@v3
-
-      - name: Install ImageMagick 7
-        if: failure()
-        run: |
-          git clone https://github.com/SoftCreatR/imei && \
-          cd imei && \
-          chmod +x imei.sh && \
-          sudo ./imei.sh --im-version 7.1.0-52
+        with:
+          fail_ci_if_error: true
 
       - name: Generate PDFs
         if: failure()
         run: |
-          for file in $(find tests/files -name '*.pdf' -not -name '*.new.pdf'); do
+          for FILE in $(find tests/files -name '*.pdf' -not -name '*.new.pdf'); do
+            echo "Converting file $FILE"
             magick convert \
               -density 300 \
               -define png:color-type=6 \
               -resize 25% \
-              $file \
+              $FILE \
               -alpha remove \
               -background white \
               -append \
-              ${file}.png
+              ${FILE}.png
 
-            NEW=$(echo $file | sed -e 's/.pdf/.new.pdf/')
+            NEW=$(echo $FILE | sed -e 's/.pdf/.new.pdf/')
 
+            echo "Converting file $NEW"
             magick convert \
               -density 300 \
               -define png:color-type=6 \
@@ -115,8 +108,8 @@ jobs:
               -append \
               ${NEW}.png
 
-            magick compare ${file}.png ${NEW}.png -density 300 ${file}.diff.png
-            magick montage ${file}.png ${NEW}.png ${file}.diff.png -geometry +10+10 ${file}.montage.png
+            magick compare ${FILE}.png ${NEW}.png -density 300 ${FILE}.diff.png
+            magick montage ${FILE}.png ${NEW}.png ${FILE}.diff.png -geometry +10+10 ${FILE}.montage.png
           done
 
       - name: Save PDFs and diffs as artifacts

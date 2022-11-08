@@ -1,0 +1,50 @@
+# syntax=docker/dockerfile:1.0.0-experimental
+
+FROM rustlang/rust:nightly as builder
+
+# renovate: datasource=cargo depName=cargo-tarpaulin
+ENV TARPAULIN_VERSION 0.22.0
+
+WORKDIR /opt/tarpaulin
+
+RUN USER=root cargo init .
+RUN cargo install --version ${TARPAULIN_VERSION} cargo-tarpaulin \
+    && rm -rf /usr/local/cargo/registry/
+
+FROM rust:1.65-bullseye
+
+RUN USER=root cargo new app
+WORKDIR /usr/src/app
+
+# renovate: datasource=github-releases depName=ImageMagick/ImageMagick
+ENV MAGICK_VERSION 7.1.0-52
+# renovate: datasource=github-releases depName=SoftCreatR/imei
+ENV IMEI_VERSION 6.6.4
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    clang \
+    curl \
+    libde265-dev \
+    libheif-dev \
+    libjpeg-dev \
+    libtiff-dev \
+    libx11-dev \
+    libxcb-shape0-dev \
+    libxcb-xfixes0-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git clone --depth 1 --branch ${IMEI_VERSION} https://github.com/SoftCreatR/imei \
+    && chmod +x imei/imei.sh \
+    && imei/imei.sh --ci --im-version ${MAGICK_VERSION} \
+    && rm -r imei
+
+COPY --from=builder /usr/local/cargo/bin/cargo-tarpaulin /usr/local/cargo/bin/cargo-tarpaulin
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+    && rustup component add clippy \
+    && rustup component add rustfmt \
+    && cargo clean
