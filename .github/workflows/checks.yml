@@ -82,9 +82,12 @@ jobs:
         with:
           fail_ci_if_error: true
 
-      - name: Generate PDFs
+      - name: Generate PDF comparisons
         if: failure()
+        id: generate-comparisons
         run: |
+          touch pr_comment.txt
+
           for FILE in $(find tests/files -name '*.pdf' -not -name '*.new.pdf'); do
             echo "Converting file $FILE"
             magick convert \
@@ -111,11 +114,16 @@ jobs:
               ${NEW}.png
 
             echo "Comparing ${FILE}.png against ${NEW}.png"
-            magick compare ${FILE}.png ${NEW}.png ${FILE}.diff.png || true
+            magick compare ${FILE}.png ${NEW}.png ${FILE}.diff.png || EXIT_CODE=$?
+            if [[ $EXIT_CODE -eq 1 ]]; then
+              echo "<img src=\"data:image/png;base64,${base64 -e ${FILE}.diff.png}\" />" >> pr_comment.txt
+            fi
 
             echo "Montaging ${FILE}.png ${NEW}.png ${FILE}.diff.png"
             magick montage ${FILE}.png ${NEW}.png ${FILE}.diff.png -geometry +10+10 ${FILE}.montage.png
           done
+
+          echo "pr_comment=${cat pr_comment.text}" >> $GITHUB_OUTPUT
 
       - name: Save PDFs and diffs as artifacts
         uses: actions/upload-artifact@v3
@@ -125,3 +133,12 @@ jobs:
           path: |
             tests/files/*.pdf
             tests/files/*.montage.png
+
+      - name: Comment on PR
+        if: failure()
+        uses: mshick/add-pr-comment@v2
+        with:
+          message: |
+            PDF equality checking has failed.
+
+            ${{ steps.generate-comparisons.outputs.pr_comment }}
