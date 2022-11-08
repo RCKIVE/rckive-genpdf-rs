@@ -7,6 +7,7 @@ on:
     #   - "main"
     paths:
       - "Dockerfile.ci"
+      - ".github/workflows/runner-ci-docker.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
