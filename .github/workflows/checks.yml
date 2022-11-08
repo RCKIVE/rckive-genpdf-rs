@@ -124,7 +124,7 @@ jobs:
             magick montage ${FILE}.png ${NEW}.png ${FILE}.diff.png -geometry +10+10 ${FILE}.montage.png
           done
 
-          echo "pr_comment=${cat pr_comment.text}" >> $GITHUB_OUTPUT
+          echo "pr_comment=$(cat pr_comment.text)" >> $GITHUB_OUTPUT
 
       - name: Save PDFs and diffs as artifacts
         uses: actions/upload-artifact@v3
