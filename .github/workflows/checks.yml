@@ -85,6 +85,8 @@ jobs:
       - name: Generate PDFs
         if: failure()
         run: |
+          magick --version
+
           for FILE in $(find tests/files -name '*.pdf' -not -name '*.new.pdf'); do
             echo "Converting file $FILE"
             magick convert \
