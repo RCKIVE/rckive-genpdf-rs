@@ -85,7 +85,7 @@ jobs:
       - name: Generate PDF comparisons
         if: failure()
         id: generate-comparisons
-        run: ./.github/.bin/generate-pdf-comparisons.sh
+        run: ./.github/bin/generate-pdf-comparisons.sh
 
       - name: Save PDFs and diffs as artifacts
         uses: actions/upload-artifact@v3
