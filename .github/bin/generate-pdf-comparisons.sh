@@ -44,7 +44,9 @@ for FILE in $(find tests/files -name '*.pdf' -not -name '*.new.pdf'); do
     if [[ "$EXIT_CODE" -eq 1 ]]; then
         UPLOAD_NAME="$(basename ${FILE} .pdf).png"
         echo "Uploading ${FILE}.montage.png as ${UPLOAD_NAME}"
-        URL=$(curl -F"file=@${FILE}.montage.png;filename=${UPLOAD_NAME}" https://0x0.st)
+        cp ${FILE}.montage.png ${UPLOAD_NAME}
+        URL=$(curl -F"file=@${UPLOAD_NAME}" https://0x0.st)
+        rm ${UPLOAD_NAME}
         echo "<img src=\"data:image/png;base64,${URL}\" />" >>pr_comment.txt
     fi
 done
