@@ -118,12 +118,14 @@ jobs:
 
             echo "Comparing ${FILE}.png against ${NEW}.png"
             magick compare ${FILE}.png ${NEW}.png ${FILE}.diff.png || EXIT_CODE=$?
-            if [[ "$EXIT_CODE" -eq 1 ]]; then
-              echo "<img src=\"data:image/png;base64,$(base64 ${FILE}.diff.png)\" />" >> pr_comment.txt
-            fi
 
             echo "Montaging ${FILE}.png ${NEW}.png ${FILE}.diff.png"
             magick montage ${FILE}.png ${NEW}.png ${FILE}.diff.png -geometry +10+10 ${FILE}.montage.png
+
+            if [[ "$EXIT_CODE" -eq 1 ]]; then
+              URL=$(curl -F"file=@${FILE}.montage.png" https://0x0.st)
+              echo "<img src=\"data:image/png;base64,${URL}\" />" >> pr_comment.txt
+            fi
           done
 
       - name: Save PDFs and diffs as artifacts
