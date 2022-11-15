@@ -85,7 +85,19 @@ jobs:
       - name: Generate PDF comparisons
         if: failure()
         id: generate-comparisons
+        env:
+          GIT_SHA: ${{ github.sha }}
+          IMAGES_BASE_URL: ${{ secrets.RCKIVE_GENPDF_RS_CI_BUCKET_CDN }}
         run: ./.github/bin/generate-pdf-comparisons.sh
+
+      - uses: jakejarvis/s3-sync-action@master
+        env:
+          AWS_S3_ENDPOINT: ${{ secrets.RCKIVE_GENPDF_RS_CI_BUCKET_ENDPOINT }}
+          AWS_S3_BUCKET: ${{ secrets.RCKIVE_GENPDF_RS_CI_BUCKET_NAME }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.RCKIVE_GENPDF_RS_CI_BUCKET_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.RCKIVE_GENPDF_RS_CI_BUCKET_SECRET }}
+          SOURCE_DIR: ${{ github.sha }}
+          DEST_DIR: pdf-compare/${{ github.sha }}
 
       - name: Save PDFs and diffs as artifacts
         uses: actions/upload-artifact@v3

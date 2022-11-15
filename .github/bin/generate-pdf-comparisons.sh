@@ -2,6 +2,8 @@
 set -x
 set -eo pipefail
 
+mkdir -p $GIT_SHA
+
 echo "PDF equality checking has failed." >pr_comment.txt
 echo >>pr_comment
 echo >>pr_comment
@@ -42,11 +44,8 @@ for FILE in $(find tests/files -name '*.pdf' -not -name '*.new.pdf'); do
     ls -hl ${FILE}.montage.png
 
     if [[ "$EXIT_CODE" -eq 1 ]]; then
-        UPLOAD_NAME="$(basename ${FILE} .pdf).png"
-        echo "Uploading ${FILE}.montage.png as ${UPLOAD_NAME}"
-        cp ${FILE}.montage.png ${UPLOAD_NAME}
-        URL=$(curl -F"file=@${UPLOAD_NAME}" https://0x0.st)
-        rm ${UPLOAD_NAME}
-        echo "<img src=\"data:image/png;base64,${URL}\" />" >>pr_comment.txt
+        echo "Moving ${FILE}.montage.png to be uploaded"
+        cp "${FILE}.montage.png" "${GIT_SHA}/${FILE}.montage.png"
+        echo "<img src=\"${IMAGES_BASE_URL}/pdf-compare/${GIT_SHA}/${FILE}.montage.png\" />" >>pr_comment.txt
     fi
 done
