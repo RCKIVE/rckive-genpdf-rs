@@ -46,7 +46,7 @@ for FILE in $(find tests/files -name '*.pdf' -not -name '*.new.pdf'); do
     if [[ "$EXIT_CODE" -eq 1 ]]; then
         UPLOAD_NAME=$(basename "${FILE}.montage.png")
         echo "Moving ${UPLOAD_NAME} to be uploaded"
-        cp "${UPLOAD_NAME}" "${GIT_SHA}/${UPLOAD_NAME}"
+        cp "${FILE}.montage.png" "${GIT_SHA}/${UPLOAD_NAME}"
         echo "<img src=\"${IMAGES_BASE_URL}/pdf-compare/${GIT_SHA}/${UPLOAD_NAME}\" />" >>pr_comment.txt
     fi
 done
