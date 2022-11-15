@@ -39,9 +39,9 @@ features = ["add", "add_assign", "from", "into", "mul", "mul_assign", "sum"]
 version = "0.99"
 
 [dev-dependencies.float-cmp]
+version = "0.9"
 default-features = false
 features = ["std"]
-version = "0.8"
 
 [dev-dependencies.hyphenation]
 features = ["embed_en-us"]
