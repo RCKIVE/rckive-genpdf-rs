@@ -44,8 +44,9 @@ for FILE in $(find tests/files -name '*.pdf' -not -name '*.new.pdf'); do
     ls -hl ${FILE}.montage.png
 
     if [[ "$EXIT_CODE" -eq 1 ]]; then
-        echo "Moving ${FILE}.montage.png to be uploaded"
-        cp "${FILE}.montage.png" "${GIT_SHA}/${FILE}.montage.png"
-        echo "<img src=\"${IMAGES_BASE_URL}/pdf-compare/${GIT_SHA}/${FILE}.montage.png\" />" >>pr_comment.txt
+        UPLOAD_NAME=$(basename "${FILE}.montage.png")
+        echo "Moving ${UPLOAD_NAME} to be uploaded"
+        cp "${UPLOAD_NAME}" "${GIT_SHA}/${UPLOAD_NAME}"
+        echo "<img src=\"${IMAGES_BASE_URL}/pdf-compare/${GIT_SHA}/${UPLOAD_NAME}\" />" >>pr_comment.txt
     fi
 done
