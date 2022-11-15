@@ -91,6 +91,7 @@ jobs:
         run: ./.github/bin/generate-pdf-comparisons.sh
 
       - uses: jakejarvis/s3-sync-action@master
+        if: failure()
         env:
           AWS_S3_ENDPOINT: ${{ secrets.RCKIVE_GENPDF_RS_CI_BUCKET_ENDPOINT }}
           AWS_S3_BUCKET: ${{ secrets.RCKIVE_GENPDF_RS_CI_BUCKET_NAME }}
