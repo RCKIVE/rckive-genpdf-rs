@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: 2020 Robin Krahl <robin.krahl@ireas.org>
-// SPDX-License-Identifier: CC0-1.0
-
 //! This example generates a demo PDF document and writes it to the path that was passed as the
 //! first command-line argument.  You may have to adapt the `FONT_DIRS`, `DEFAULT_FONT_NAME` and
 //! `MONO_FONT_NAME` constants for your system so that these files exist:
@@ -9,15 +6,12 @@
 //! - `{FONT_DIR}/{name}-Italic.ttf`
 //! - `{FONT_DIR}/{name}-BoldItalic.ttf`
 //! for `name` in {`DEFAULT_FONT_NAME`, `MONO_FONT_NAME`}.
-//!
-//! The generated document using the latest `genpdf-rs` release is available
-//! [here](https://genpdf-rs.ireas.org/examples/demo.pdf).
 
 use std::env;
 
-use genpdf::Alignment;
-use genpdf::Element as _;
-use genpdf::{elements, fonts, style};
+use rckive_genpdf::Alignment;
+use rckive_genpdf::Element as _;
+use rckive_genpdf::{elements, fonts, style};
 
 const FONT_DIRS: &[&str] = &[
     "/usr/share/fonts/liberation",
@@ -49,12 +43,12 @@ fn main() {
     let monospace_font = fonts::from_files(font_dir, MONO_FONT_NAME, Some(fonts::Builtin::Courier))
         .expect("Failed to load the monospace font family");
 
-    let mut doc = genpdf::Document::new(default_font);
-    doc.set_title("genpdf Demo Document");
+    let mut doc = rckive_genpdf::Document::new(default_font);
+    doc.set_title("rckive_genpdf Demo Document");
     doc.set_minimal_conformance();
     doc.set_line_spacing(1.25);
 
-    let mut decorator = genpdf::SimplePageDecorator::new();
+    let mut decorator = rckive_genpdf::SimplePageDecorator::new();
     decorator.set_margins(10);
     decorator.set_header(|page| {
         let mut layout = elements::LinearLayout::vertical();
@@ -84,14 +78,14 @@ fn main() {
     let blue = style::Color::Rgb(0, 0, 255);
 
     doc.push(
-        elements::Paragraph::new("genpdf Demo Document")
+        elements::Paragraph::new("rckive_genpdf Demo Document")
             .aligned(Alignment::Center)
             .styled(style::Style::new().bold().with_font_size(20)),
     );
     doc.push(elements::Break::new(1.5));
     doc.push(elements::Paragraph::new(
-        "This document demonstrates how the genpdf crate generates PDF documents. Currently, \
-         genpdf supports these elements:",
+        "This document demonstrates how the rckive_genpdf crate generates PDF documents. Currently, \
+         rckive_genpdf supports these elements:",
     ));
 
     let mut list = elements::UnorderedList::new();
@@ -185,7 +179,7 @@ fn main() {
     doc.push(elements::Paragraph::new("This is right-aligned text.").aligned(Alignment::Right));
     doc.push(
         elements::Paragraph::new("And this paragraph has a frame drawn around it and is colored.")
-            .padded(genpdf::Margins::vh(0, 1))
+            .padded(rckive_genpdf::Margins::vh(0, 1))
             .framed(style::LineStyle::from(style::Color::Rgb(0, 0, 255)).with_thickness(0.3))
             .styled(red),
     );
@@ -247,7 +241,7 @@ fn main() {
                 .element(elements::Paragraph::new("Even lists!"))
                 .element(
                     elements::Paragraph::new("And frames!")
-                        .padded(genpdf::Margins::vh(0, 1))
+                        .padded(rckive_genpdf::Margins::vh(0, 1))
                         .framed(style::LineStyle::new()),
                 ),
         );
@@ -306,7 +300,7 @@ mod images {
 
     const IMAGE_PATH_JPG: &'static str = "examples/images/test_image.jpg";
 
-    pub fn do_image_test(doc: &mut genpdf::Document) {
+    pub fn do_image_test(doc: &mut rckive_genpdf::Document) {
         doc.push(elements::Paragraph::new(
             "Here is an example image with default position/scale:",
         ));
@@ -318,7 +312,7 @@ mod images {
             elements::Image::from_path(IMAGE_PATH_JPG)
                 .expect("Unable to load image")
                 .with_alignment(Alignment::Center)
-                .with_scale(genpdf::Scale::new(0.5, 2))
+                .with_scale(rckive_genpdf::Scale::new(0.5, 2))
                 .with_clockwise_rotation(45.0),
         );
         doc.push(elements::Paragraph::new(

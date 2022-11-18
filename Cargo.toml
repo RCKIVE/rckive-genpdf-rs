@@ -1,19 +1,16 @@
-# SPDX-FileCopyrightText: 2020-2021 Robin Krahl <robin.krahl@ireas.org>
-# SPDX-License-Identifier: CC0-1.0
-
 [package]
-authors = ["Robin Krahl <robin.krahl@ireas.org>"]
+authors = ["Martijn Arts <martijn@rckive.com>", "Robin Krahl <robin.krahl@ireas.org>"]
 categories = ["text-processing"]
 description = "User-friendly PDF generator written in pure Rust"
 documentation = "https://docs.rs/genpdf"
-edition = "2018"
+edition = "2021"
 exclude = [".builds/*"]
-homepage = "https://sr.ht/~ireas/genpdf-rs"
+homepage = "https://github.com/RCKIVE/rckive-genpdf-rs"
 keywords = ["pdf", "text", "layout"]
 license = "Apache-2.0 OR MIT"
-name = "genpdf"
+name = "rckive-genpdf"
 readme = "README.md"
-repository = "https://git.sr.ht/~ireas/genpdf-rs"
+repository = "https://github.com/RCKIVE/rckive-genpdf-rs"
 version = "0.2.0"
 
 [[example]]
@@ -21,31 +18,16 @@ name = "images"
 required-features = ["images"]
 
 [dependencies]
+derive_more = {version = "0.99", default-features = false, features = ["add", "add_assign", "from", "into", "mul", "mul_assign", "sum"]}
+hyphenation = {version = "0.8", optional = true}
 lopdf = "0.29"
+printpdf = {version = "0.5.3", default-features = false}
 rusttype = "0.9"
 ttf-parser = "0.12.3"
 
-[dependencies.hyphenation]
-optional = true
-version = "0.8"
-
-[dependencies.printpdf]
-default-features = false
-version = "0.5.3"
-
-[dependencies.derive_more]
-default-features = false
-features = ["add", "add_assign", "from", "into", "mul", "mul_assign", "sum"]
-version = "0.99"
-
-[dev-dependencies.float-cmp]
-default-features = false
-features = ["std"]
-version = "0.9"
-
-[dev-dependencies.hyphenation]
-features = ["embed_en-us"]
-version = "0.8"
+[dev-dependencies]
+float-cmp = {version = "0.9", default-features = false, features = ["std"]}
+hyphenation = {version = "0.8", features = ["embed_en-us"]}
 
 [features]
 default = []

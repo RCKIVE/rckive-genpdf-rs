@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: 2021 Robin Krahl <robin.krahl@ireas.org>
-// SPDX-License-Identifier: CC0-1.0
-
 //! This example generates a minimal PDF document and writes it to the path that was passed as the
 //! first command-line argument.  The size of the generated document should be 2.0 KB.
 //!
@@ -15,7 +12,7 @@
 
 use std::env;
 
-use genpdf::{elements, fonts};
+use rckive_genpdf::{elements, fonts};
 
 const FONT_DIRS: &[&str] = &[
     "/usr/share/fonts/liberation",
@@ -38,8 +35,8 @@ fn main() {
         fonts::from_files(font_dir, DEFAULT_FONT_NAME, Some(fonts::Builtin::Helvetica))
             .expect("Failed to load the default font family");
 
-    let mut doc = genpdf::Document::new(default_font);
-    doc.set_title("genpdf Demo Document");
+    let mut doc = rckive_genpdf::Document::new(default_font);
+    doc.set_title("rckive_genpdf Demo Document");
     doc.set_minimal_conformance();
     doc.set_line_spacing(1.25);
 

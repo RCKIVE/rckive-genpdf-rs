@@ -1,9 +1,6 @@
-// SPDX-FileCopyrightText: 2020-2021 Robin Krahl <robin.krahl@ireas.org>
-// SPDX-License-Identifier: Apache-2.0 or MIT
-
 //! User-friendly PDF generator written in pure Rust.
 //!
-//! `genpdf` is a high-level PDF generator built ontop of [`printpdf`][] and [`rusttype`][].  It
+//! `rckive_genpdf` is a high-level PDF generator built ontop of [`printpdf`][] and [`rusttype`][].  It
 //! takes care of the page layout and text alignment and renders a document tree into a PDF
 //! document.  All of its dependencies are written in Rust, so you don’t need any pre-installed
 //! libraries or tools.
@@ -17,18 +14,18 @@
 //! <!-- Keep in sync with README.md -->
 //! ```no_run
 //! // Load a font from the file system
-//! let font_family = genpdf::fonts::from_files("./fonts", "LiberationSans", None)
+//! let font_family = rckive_genpdf::fonts::from_files("./fonts", "LiberationSans", None)
 //!     .expect("Failed to load font family");
 //! // Create a document and set the default font family
-//! let mut doc = genpdf::Document::new(font_family);
+//! let mut doc = rckive_genpdf::Document::new(font_family);
 //! // Change the default settings
 //! doc.set_title("Demo document");
 //! // Customize the pages
-//! let mut decorator = genpdf::SimplePageDecorator::new();
+//! let mut decorator = rckive_genpdf::SimplePageDecorator::new();
 //! decorator.set_margins(10);
 //! doc.set_page_decorator(decorator);
 //! // Add one or more elements
-//! doc.push(genpdf::elements::Paragraph::new("This is a demo document."));
+//! doc.push(rckive_genpdf::elements::Paragraph::new("This is a demo document."));
 //! // Render the document and write it to a file
 //! doc.render_to_file("output.pdf").expect("Failed to write PDF file");
 //! ```
@@ -58,7 +55,7 @@
 //! once you call the [`Document::render`][] or [`Document::render_to_file`][] methods.  For
 //! details on the rendering process, see the next section.
 //!
-//! In `genpdf`, all lengths are measured in millimeters.  The only exceptions are font sizes that
+//! In `rckive_genpdf`, all lengths are measured in millimeters.  The only exceptions are font sizes that
 //! are measured in points.  The [`Mm`][] newtype struct is used for all lengths, and the
 //! [`Position`][] and [`Size`][] types are used to describe points and rectangles in the PDF
 //! document.
@@ -111,13 +108,13 @@
 //! The [`render`][] module contains a low-level interface for creating PDF files.  It keeps track
 //! of page sizes and layers and has utility methods for easier text and shape rendering.  But it
 //! does not provide support for measuring the size of rendered text or for laying out elements.
-//! If possible, you should always try to use `genpdf`’s high-level interface and implement the
+//! If possible, you should always try to use `rckive_genpdf`’s high-level interface and implement the
 //! [`Element`][] trait if you want to customize a document instead of using the low-level
 //! interface directly.
 //!
 //! # Known Issues
 //!
-//! - Currently, `genpdf` adds all loaded fonts to the PDF document, even if they are not used.
+//! - Currently, `rckive_genpdf` adds all loaded fonts to the PDF document, even if they are not used.
 //!   `printpdf` then adds all available glyphs for these fonts to the document, even if they are
 //!   not used in the document.  This increases the file size by 100–200 KiB per font (500–1000 KiB
 //!   per font family).  Until this is fixed, you can pass the generated file through `ps2pdf` to
@@ -147,8 +144,8 @@
 //! [`Position`]: struct.Position.html
 //! [`Style`]: style/struct.Style.html
 //! [`StyledString`]: style/struct.StyledString.html
-//! [`examples/demo.rs`]: https://git.sr.ht/~ireas/genpdf-rs/tree/master/examples/demo.rs
-//! [this PDF document]: https://genpdf-rs.ireas.org/examples/demo.pdf
+//! [`examples/demo.rs`]: https://git.sr.ht/~ireas/rckive_genpdf-rs/tree/master/examples/demo.rs
+//! [this PDF document]: https://rckive_genpdf-rs.ireas.org/examples/demo.pdf
 //! [Windows-1252]: https://en.wikipedia.org/wiki/Windows-1252
 
 #![warn(missing_docs, rust_2018_idioms)]
@@ -173,7 +170,7 @@ use error::Context as _;
 
 /// A length measured in millimeters.
 ///
-/// `genpdf` always uses millimeters as its length unit, except for the font size that is measured
+/// `rckive_genpdf` always uses millimeters as its length unit, except for the font size that is measured
 /// in points.
 ///
 /// If you want to convert pixels or points into millimeters, you can use the [`printpdf::Pt`][]
@@ -300,7 +297,7 @@ impl Default for Alignment {
 
 /// A position on a PDF layer, measured in millimeters.
 ///
-/// All positions used by `genpdf` are measured from the top left corner of the reference area.
+/// All positions used by `rckive_genpdf` are measured from the top left corner of the reference area.
 #[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd, Add, AddAssign, Sub, SubAssign)]
 pub struct Position {
     /// The x coordinate of the position, measured from the left border of the reference area.
@@ -526,7 +523,7 @@ impl<T: Into<Mm>> From<T> for Margins {
 
 /// A PDF document.
 ///
-/// This struct is the entry point for the high-level `genpdf` API.  It stores a set of elements
+/// This struct is the entry point for the high-level `rckive_genpdf` API.  It stores a set of elements
 /// and default style and layout settings.  Add elements to the document by calling the [`push`][]
 /// method and then render them to a PDF file using the [`render`][] and [`render_to_file`][]
 /// methods.
@@ -547,11 +544,11 @@ impl<T: Into<Mm>> From<T> for Margins {
 ///
 /// ```no_run
 /// // Load a font from the file system
-/// let font_family = genpdf::fonts::from_files("./fonts", "LiberationSans", None)
+/// let font_family = rckive_genpdf::fonts::from_files("./fonts", "LiberationSans", None)
 ///     .expect("Failed to load font family");
 /// // Create a document and set the default font family
-/// let mut doc = genpdf::Document::new(font_family);
-/// doc.push(genpdf::elements::Paragraph::new("Document content"));
+/// let mut doc = rckive_genpdf::Document::new(font_family);
+/// doc.push(rckive_genpdf::elements::Paragraph::new("Document content"));
 /// doc.render_to_file("output.pdf").expect("Failed to render document");
 /// ```
 ///
@@ -901,7 +898,7 @@ pub trait Element {
     /// fitted in the area or not, the `size` field of the [`RenderResult`][] must always be set to
     /// the size of the area that has been used, starting at the origin of the provided area.
     ///
-    /// The following guarantuees are made by `genpdf`’s elements and must be followed by
+    /// The following guarantuees are made by `rckive_genpdf`’s elements and must be followed by
     /// implementations of this trait:
     ///
     /// - There is only one rendering process per element instance.  This means that the first call

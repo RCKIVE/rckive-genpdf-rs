@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: 2020 Robin Krahl <robin.krahl@ireas.org>
-// SPDX-License-Identifier: Apache-2.0 or MIT
-
 //! Types for styled strings.
 //!
 //! A [`StyledString`][] is a [`String`][] with a [`Style`][] annotation.  Accordingly, a
@@ -13,7 +10,7 @@
 //! # Example
 //!
 //! ```
-//! use genpdf::style;
+//! use rckive_genpdf::style;
 //! let style = style::Style::new().bold();
 //! let ss1 = style::StyledStr::new("bold", style);
 //! let ss2 = style::StyledStr::new("red", style::Color::Rgb(255, 0, 0));
@@ -43,9 +40,9 @@ use crate::Mm;
 /// # Examples
 ///
 /// ```
-/// let red = genpdf::style::Color::Rgb(255, 0, 0);
-/// let cyan = genpdf::style::Color::Cmyk(255, 0, 0, 0);
-/// let grey = genpdf::style::Color::Greyscale(127);
+/// let red = rckive_genpdf::style::Color::Rgb(255, 0, 0);
+/// let cyan = rckive_genpdf::style::Color::Cmyk(255, 0, 0, 0);
+/// let grey = rckive_genpdf::style::Color::Greyscale(127);
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Color {
@@ -361,7 +358,7 @@ impl<T: Into<Style>> iter::FromIterator<T> for Style {
 /// # Example
 ///
 /// ```
-/// use genpdf::style;
+/// use rckive_genpdf::style;
 /// let ss1 = style::StyledString::new("bold".to_owned(), style::Effect::Bold);
 /// let ss2 = style::StyledString::new("red".to_owned(), style::Color::Rgb(255, 0, 0));
 /// ```
@@ -420,7 +417,7 @@ impl<'a> From<&'a str> for StyledString {
 /// # Example
 ///
 /// ```
-/// use genpdf::style;
+/// use rckive_genpdf::style;
 /// let ss1 = style::StyledStr::new("bold", style::Effect::Bold);
 /// let ss2 = style::StyledStr::new("red", style::Color::Rgb(255, 0, 0));
 /// ```
@@ -479,7 +476,7 @@ impl<'s> From<&'s StyledString> for StyledStr<'s> {
 /// # Example
 ///
 /// ```
-/// use genpdf::style;
+/// use rckive_genpdf::style;
 /// let ss1 = style::StyledCow::new("bold", style::Effect::Bold);
 /// let ss2 = style::StyledCow::new("red".to_owned(), style::Color::Rgb(255, 0, 0));
 /// ```

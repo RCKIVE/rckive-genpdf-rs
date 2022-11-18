@@ -1,7 +1,4 @@
-// SPDX-FileCopyrightText: 2020 Robin Krahl <robin.krahl@ireas.org>
-// SPDX-License-Identifier: Apache-2.0 or MIT
-
-//! Error types for `genpdf`.
+//! Error types for `rckive_genpdf`.
 
 use std::error;
 use std::fmt;
@@ -42,7 +39,7 @@ impl<T, E: Into<ErrorKind>> Context<T> for Result<T, E> {
     }
 }
 
-/// An error that occured in a `genpdf` function.
+/// An error that occured in a `rckive_genpdf` function.
 ///
 /// The error consists of an error message (provided by the `Display` implementation) and an error
 /// kind, see [`kind`](#method.kind).

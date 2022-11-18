@@ -1,8 +1,3 @@
-<!---
-SPDX-FileCopyrightText: 2020-2021 Robin Krahl <robin.krahl@ireas.org>
-SPDX-License-Identifier: CC0-1.0
--->
-
 # Unreleased
 
 ## Breaking Changes
@@ -89,7 +84,7 @@ Scott Steele for contributing a bug fix.
 - Replace the `PdfprintError` variant of `ErrorKind` with `PdfError` and
   `PdfIndexError`.
 - Change the return type of `render::Area::text_section` from `Result<_, ()>`
-  to  `Option<_>`.
+  to `Option<_>`.
 - Bump the MSRV to 1.45.0.
 - Move `Alignment` struct out of `elements` module.
 

@@ -1,15 +1,10 @@
-<!---
-Copyright (C) 2020 Robin Krahl <robin.krahl@ireas.org>
-SPDX-License-Identifier: CC0-1.0
--->
+# rckive-genpdf-rs
 
-# genpdf-rs
-
-> This is a fork by [RCKIVE](rckive.com), with automated package updates.
+> This is a fork of [genpdf-rs][upstream] by [RCKIVE](rckive.com).
 
 A user-friendly PDF generator written in pure Rust.
 
-[Documentation](https://docs.rs/genpdf)
+[Documentation](https://docs.rs/rckive-genpdf)
 
 `genpdf` is a high-level PDF generator built on top of [`printpdf`][] and
 [`rusttype`][]. It takes care of the page layout and text alignment and
@@ -40,12 +35,11 @@ doc.render_to_file("output.pdf").expect("Failed to write PDF file");
 ```
 
 For a complete example with all supported elements, see the
-[`examples/demo.rs`][] file that generates [this PDF document][].
+[`examples/demo.rs`][] file.
 
-[`examples/demo.rs`]: https://git.sr.ht/~ireas/genpdf-rs/tree/master/examples/demo.rs
-[this pdf document]: https://genpdf-rs.ireas.org/examples/demo.pdf
+<!-- For more information, see the [API documentation](https://docs.rs/rckive-genpdf). -->
 
-For more information, see the [API documentation](https://docs.rs/genpdf).
+[upstream]: https://git.sr.ht/~ireas/genpdf-rs
 
 ## Features
 
@@ -67,15 +61,6 @@ This crate has the following Cargo features (deactivated per default):
 
 [`hyphenation`]: https://lib.rs/crates/hyphenation
 [`image`]: https://lib.rs/crates/image
-
-## Roadmap
-
-These features are currently not supported but planned for future versions:
-
-- Improved support for drawing shapes
-- Advanced text formatting
-
-See also the [`genpdf-rs` issue tracker](https://todo.sr.ht/~ireas/genpdf-rs).
 
 ## Alternatives
 
@@ -102,10 +87,8 @@ This crate supports at least Rust 1.45.0 or later.
 
 ## Contributing
 
-Contributions to this project are welcome! Please submit patches to the
-mailing list [~ireas/public-inbox@lists.sr.ht][] ([archive][]) using the
-`[PATCH genpdf-rs]` subject prefix. For more information, see the
-[Contributing Guide][].
+Contributions to this project are welcome! Please submit pull requests on
+[Github][gh-pulls].
 
 [~ireas/public-inbox@lists.sr.ht]: mailto:~ireas/public-inbox@lists.sr.ht
 [archive]: https://lists.sr.ht/~ireas/public-inbox
@@ -118,20 +101,24 @@ the label “good first issue”][issues] in `genpdf-rs`’s issue tracker.
 
 ## Contact
 
-For bug reports, feature requests and other messages, please send a mail to
-[~ireas/public-inbox@lists.sr.ht][] ([archive][]) using the `[genpdf-rs]`
-prefix in the subject.
+For bug reports or feature requests, please look at [the Github Issues board][gh-issues]
+if your issue exists, and create a new one if it doesn't. For questions, check
+out [Github Discussions][gh-discussions]
 
 ## License
 
-This project is dual-licensed under the [Apache-2.0][] and [MIT][] licenses.
-The documentation and examples contained in this repository are licensed under
-the [Creative Commons Zero][cc0] license. You can find a copy of the license
-texts in the `LICENSES` directory.
+This repository is licensed under EUPL-1.2 or later, except for code that is
+unchanged from the upstream repository as described below.
 
-`genpdf-rs` complies with [version 3.0 of the REUSE specification][reuse].
+This code was forked, find the original repository here:
+[https://git.sr.ht/~ireas/genpdf-rs][]. All code that has not been changed is
+licensed under Apache-2.0 and MIT, and documentation under CC-0, as described in
+the original repository README.
 
-[apache-2.0]: https://opensource.org/licenses/Apache-2.0
-[mit]: https://opensource.org/licenses/MIT
-[cc0]: https://creativecommons.org/publicdomain/zero/1.0/
-[reuse]: https://reuse.software/practices/3.0/
+As of the time of this writing, no merges have been made from the original
+repository since its forking. This means that the prime way to find pre-fork
+code is using Git: `git checkout 38dd11e8`.
+
+[gh-pulls]: https://github.com/RCKIVE/rckive-genpdf-rs/pulls
+[gh-issues]: https://github.com/RCKIVE/rckive-genpdf-rs/issues
+[gh-discussions]: https://github.com/RCKIVE/rckive-genpdf-rs/discussions
