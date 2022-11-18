@@ -111,7 +111,7 @@ This repository is licensed under EUPL-1.2 or later, except for code that is
 unchanged from the upstream repository as described below.
 
 This code was forked, find the original repository here:
-[https://git.sr.ht/~ireas/genpdf-rs][]. All code that has not been changed is
+https://git.sr.ht/~ireas/genpdf-rs. All code that has not been changed is
 licensed under Apache-2.0 and MIT, and documentation under CC-0, as described in
 the original repository README.
 
