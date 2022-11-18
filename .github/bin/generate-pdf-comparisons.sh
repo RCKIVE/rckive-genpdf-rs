@@ -4,7 +4,8 @@ set -eo pipefail
 
 mkdir -p $GIT_SHA
 
-echo "PDF equality checking has failed." >pr_comment.txt
+echo "PDF equality checking has failed. Differences shown below (left: original, middle: new, right: differences)." >pr_comment.txt
+echo "Write a comment with .accept-pdf-diffs to accept the new PDFs." >>pr_comment.txt
 echo >>pr_comment
 echo >>pr_comment
 
