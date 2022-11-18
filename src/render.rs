@@ -322,7 +322,7 @@ impl<'p> Layer<'p> {
     #[cfg(feature = "images")]
     fn add_image(
         &self,
-        image: &image::DynamicImage,
+        image: &printpdf::image_crate::DynamicImage,
         position: LayerPosition,
         scale: Scale,
         rotation: Rotation,
@@ -332,12 +332,20 @@ impl<'p> Layer<'p> {
         let position = self.transform_position(position);
         dynamic_image.add_to_layer(
             self.data.layer.clone(),
-            Some(position.x.into()),
-            Some(position.y.into()),
-            rotation.into(),
-            Some(scale.x),
-            Some(scale.y),
-            dpi,
+            printpdf::ImageTransform {
+                translate_x: Some(position.x.into()),
+                translate_y: Some(position.y.into()),
+                rotate: Some(printpdf::ImageRotation {
+                    // rotation.degrees() is clockwise, but ImageRotation requires ccw
+                    angle_ccw_degrees: -(rotation
+                        .degrees()
+                        .expect("Could not parse rotation into degrees")),
+                    ..Default::default()
+                }),
+                scale_x: Some(scale.x),
+                scale_y: Some(scale.y),
+                dpi,
+            },
         );
     }
 
@@ -566,7 +574,7 @@ impl<'p> Area<'p> {
     #[cfg(feature = "images")]
     pub fn add_image(
         &self,
-        image: &image::DynamicImage,
+        image: &printpdf::image_crate::DynamicImage,
         position: Position,
         scale: Scale,
         rotation: Rotation,

@@ -2,58 +2,55 @@
 # SPDX-License-Identifier: CC0-1.0
 
 [package]
-name = "genpdf"
-version = "0.2.0"
 authors = ["Robin Krahl <robin.krahl@ireas.org>"]
-edition = "2018"
-description = "User-friendly PDF generator written in pure Rust"
-homepage = "https://sr.ht/~ireas/genpdf-rs"
-repository = "https://git.sr.ht/~ireas/genpdf-rs"
-documentation = "https://docs.rs/genpdf"
-keywords = ["pdf", "text", "layout"]
 categories = ["text-processing"]
-license = "Apache-2.0 OR MIT"
+description = "User-friendly PDF generator written in pure Rust"
+documentation = "https://docs.rs/genpdf"
+edition = "2018"
 exclude = [".builds/*"]
+homepage = "https://sr.ht/~ireas/genpdf-rs"
+keywords = ["pdf", "text", "layout"]
+license = "Apache-2.0 OR MIT"
+name = "genpdf"
 readme = "README.md"
+repository = "https://git.sr.ht/~ireas/genpdf-rs"
+version = "0.2.0"
 
 [[example]]
 name = "images"
 required-features = ["images"]
 
 [dependencies]
-lopdf = "0.26"
-rusttype = "0.8"
-
-[dependencies.image]
-version = "0.23.12"
-default-features = false
-optional = true
+lopdf = "0.29"
+rusttype = "0.9"
+ttf-parser = "0.12.3"
 
 [dependencies.hyphenation]
-version = "0.8"
 optional = true
+version = "0.8"
 
 [dependencies.printpdf]
-version = "0.3.4"
 default-features = false
+version = "0.5.3"
 
 [dependencies.derive_more]
-version = "0.99"
 default-features = false
 features = ["add", "add_assign", "from", "into", "mul", "mul_assign", "sum"]
+version = "0.99"
 
 [dev-dependencies.float-cmp]
-version = "0.9"
 default-features = false
 features = ["std"]
+version = "0.9"
 
 [dev-dependencies.hyphenation]
-version = "0.8"
 features = ["embed_en-us"]
+version = "0.8"
 
 [features]
 default = []
-images = ["image", "printpdf/embedded_images"]
+images = ["printpdf/embedded_images"]
+pdf_comparison_tests = ["images"]
 
 [package.metadata.docs.rs]
 all-features = true

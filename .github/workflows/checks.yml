@@ -55,7 +55,10 @@ jobs:
 
   tests:
     name: cargo test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/rckive/rckive-genpdf-rs-ci:renovate-printpdf-0.x
+      options: --security-opt seccomp=unconfined
     steps:
       - uses: actions/cache@v3
         with:
@@ -70,6 +73,47 @@ jobs:
 
       - uses: actions/checkout@v3
 
-      - uses: actions-rs/cargo@v1
+      - name: Generate code coverage
+        run: |
+          cargo +nightly tarpaulin --features pdf_comparison_tests --workspace --timeout 120 --out Xml
+
+      - name: Upload coverage reports to Codecov with GitHub Action
+        uses: codecov/codecov-action@v3
         with:
-          command: test
+          fail_ci_if_error: true
+
+      - name: Generate PDF comparisons
+        if: failure()
+        id: generate-comparisons
+        env:
+          GIT_SHA: ${{ github.sha }}
+          IMAGES_BASE_URL: ${{ secrets.RCKIVE_GENPDF_RS_CI_BUCKET_CDN }}
+        run: ./.github/bin/generate-pdf-comparisons.sh
+
+      - uses: jakejarvis/s3-sync-action@master
+        if: failure()
+        with:
+          args: --acl public-read
+        env:
+          AWS_S3_ENDPOINT: ${{ secrets.RCKIVE_GENPDF_RS_CI_BUCKET_ENDPOINT }}
+          AWS_S3_BUCKET: ${{ secrets.RCKIVE_GENPDF_RS_CI_BUCKET_NAME }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.RCKIVE_GENPDF_RS_CI_BUCKET_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.RCKIVE_GENPDF_RS_CI_BUCKET_SECRET }}
+          SOURCE_DIR: ${{ github.sha }}
+          DEST_DIR: pdf-compare/${{ github.sha }}
+
+      - name: Save PDFs and diffs as artifacts
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: test-pdfs
+          path: |
+            tests/files/*.pdf
+            tests/files/*.montage.png
+
+      - name: Comment on PR
+        if: failure()
+        uses: mshick/add-pr-comment@v2
+        with:
+          message-path: pr_comment.txt
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

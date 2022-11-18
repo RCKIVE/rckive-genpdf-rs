@@ -1,0 +1,53 @@
+name: "Accept PDF differences"
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  accept-diffs:
+    name: Accept PDF differences
+    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, ".accept-pdf-diffs") }}
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/rckive/rckive-genpdf-rs-ci:renovate-printpdf-0.x
+      options: --security-opt seccomp=unconfined
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v5
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Run tests to generate PDFs
+        run: cargo test --features pdf_comparison_tests
+
+      - name: Replace old PDFs with new ones
+        run: ./.github/bin/accept-new-pdfs.sh
+
+      - name: Add & Commit
+        uses: EndBug/add-and-commit@v9.1.1
+        with:
+          add: tests/files
+          default_author: github_actor
+          message: "Accept new test PDFs"
