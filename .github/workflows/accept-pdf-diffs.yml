@@ -5,7 +5,8 @@ on:
     types: [created]
 
 jobs:
-  - name: Accept PDF diffs
+  accept-diffs:
+    name: Accept PDF differences
     if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, ".accept-pdf-diffs") }}
     runs-on: ubuntu-22.04
     container:
@@ -39,7 +40,7 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
 
       - name: Run tests to generate PDFs
-        run: cargo test
+        run: cargo test --features pdf_comparison_tests
 
       - name: Replace old PDFs with new ones
         run: ./.github/bin/accept-new-pdfs.sh
