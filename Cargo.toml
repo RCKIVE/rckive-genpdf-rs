@@ -23,7 +23,7 @@ hyphenation = {version = "0.8", optional = true}
 lopdf = "0.29"
 printpdf = {version = "0.5.3", default-features = false}
 rusttype = "0.9"
-ttf-parser = "0.12.3"
+ttf-parser = "0.17.1"
 
 [dev-dependencies]
 float-cmp = {version = "0.9", default-features = false, features = ["std"]}
