@@ -11,7 +11,7 @@ RUN USER=root cargo init .
 RUN cargo install --version ${TARPAULIN_VERSION} cargo-tarpaulin \
     && rm -rf /usr/local/cargo/registry/
 
-FROM rust:1.65-bullseye
+FROM rust:1.66-bullseye
 
 RUN USER=root cargo new app
 WORKDIR /usr/src/app
