@@ -58,20 +58,20 @@ impl From<Color> for printpdf::Color {
     fn from(color: Color) -> printpdf::Color {
         match color {
             Color::Rgb(r, g, b) => printpdf::Color::Rgb(printpdf::Rgb::new(
-                f64::from(r) / 255.0,
-                f64::from(g) / 255.0,
-                f64::from(b) / 255.0,
+                f32::from(r) / 255.0,
+                f32::from(g) / 255.0,
+                f32::from(b) / 255.0,
                 None,
             )),
             Color::Cmyk(c, m, y, k) => printpdf::Color::Cmyk(printpdf::Cmyk::new(
-                f64::from(c) / 255.0,
-                f64::from(m) / 255.0,
-                f64::from(y) / 255.0,
-                f64::from(k) / 255.0,
+                f32::from(c) / 255.0,
+                f32::from(m) / 255.0,
+                f32::from(y) / 255.0,
+                f32::from(k) / 255.0,
                 None,
             )),
             Color::Greyscale(val) => {
-                printpdf::Color::Greyscale(printpdf::Greyscale::new(f64::from(val) / 255.0, None))
+                printpdf::Color::Greyscale(printpdf::Greyscale::new(f32::from(val) / 255.0, None))
             }
         }
     }
@@ -106,7 +106,7 @@ pub enum Effect {
 pub struct Style {
     font_family: Option<fonts::FontFamily<fonts::Font>>,
     font_size: Option<u8>,
-    line_spacing: Option<f64>,
+    line_spacing: Option<f32>,
     color: Option<Color>,
     is_bold: bool,
     is_italic: bool,
@@ -170,7 +170,7 @@ impl Style {
     }
 
     /// Returns the line spacing factor for this style, or 1 if no line spacing factor is set.
-    pub fn line_spacing(&self) -> f64 {
+    pub fn line_spacing(&self) -> f32 {
         self.line_spacing.unwrap_or(1.0)
     }
 
@@ -208,12 +208,12 @@ impl Style {
     }
 
     /// Sets the line spacing factor for this style.
-    pub fn set_line_spacing(&mut self, line_spacing: f64) {
+    pub fn set_line_spacing(&mut self, line_spacing: f32) {
         self.line_spacing = Some(line_spacing);
     }
 
     /// Sets the line spacing factor for this style and returns it.
-    pub fn with_line_spacing(mut self, line_spacing: f64) -> Style {
+    pub fn with_line_spacing(mut self, line_spacing: f32) -> Style {
         self.set_line_spacing(line_spacing);
         self
     }

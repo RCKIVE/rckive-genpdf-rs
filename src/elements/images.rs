@@ -57,7 +57,7 @@ pub struct Image {
     rotation: Rotation,
 
     /// DPI override if you know better. Defaults to `printpdf`’s default of 300 dpi.
-    dpi: Option<f64>,
+    dpi: Option<f32>,
 }
 
 impl Image {
@@ -157,14 +157,14 @@ impl Image {
 
     /// Calculates a guess for the size of the image based on the dpi/pixel-count/scale.
     fn get_size(&self) -> Size {
-        let mmpi: f64 = 25.4; // millimeters per inch
+        let mmpi: f32 = 25.4; // millimeters per inch
                               // Assume 300 DPI to be consistent with printpdf.
-        let dpi: f64 = self.dpi.unwrap_or(300.0);
+        let dpi: f32 = self.dpi.unwrap_or(300.0);
         let (px_width, px_height) = self.data.dimensions();
-        let (scale_width, scale_height): (f64, f64) = (self.scale.x, self.scale.y);
+        let (scale_width, scale_height): (f32, f32) = (self.scale.x, self.scale.y);
         Size::new(
-            mmpi * ((scale_width * px_width as f64) / dpi),
-            mmpi * ((scale_height * px_height as f64) / dpi),
+            mmpi * ((scale_width * px_width as f32) / dpi),
+            mmpi * ((scale_height * px_height as f32) / dpi),
         )
     }
 
@@ -181,12 +181,12 @@ impl Image {
     }
 
     /// Sets the expected DPI of the encoded image.
-    pub fn set_dpi(&mut self, dpi: f64) {
+    pub fn set_dpi(&mut self, dpi: f32) {
         self.dpi = Some(dpi);
     }
 
     /// Sets the expected DPI of the encoded image and returns it.
-    pub fn with_dpi(mut self, dpi: f64) -> Self {
+    pub fn with_dpi(mut self, dpi: f32) -> Self {
         self.set_dpi(dpi);
         self
     }
@@ -285,7 +285,7 @@ mod tests {
             let left = $lhs;
             let right = $rhs;
             assert!(
-                approx_eq!($typ, left, right, epsilon = 100.0 * f64::EPSILON, ulps = 10),
+                approx_eq!($typ, left, right, epsilon = 100.0 * f32::EPSILON, ulps = 10),
                 "assertion failed: `(left approx_eq right)`
   left: `{:?}`,
  right: `{:?}`",
@@ -295,7 +295,7 @@ mod tests {
         };
     }
 
-    fn test_position(size: Size, rotation: f64, position: Position) {
+    fn test_position(size: Size, rotation: f32, position: Position) {
         println!("rotation = {}", rotation);
         let rotation = Rotation::from(rotation);
         assert_approx_eq!(
@@ -318,7 +318,7 @@ mod tests {
     #[test]
     fn test_bounding_box_size_square_30_deg() {
         let size = Size::new(100, 100);
-        let bb_width = (60.0f64.to_radians().sin() + 30.0f64.to_radians().sin()) * size.width.0;
+        let bb_width = (60.0f32.to_radians().sin() + 30.0f32.to_radians().sin()) * size.width.0;
         let bb_size = Size::new(bb_width, bb_width);
         for rotation in &[-150.0, -120.0, -30.0, -60.0, 30.0, 60.0, 120.0, 150.0] {
             println!("rotation = {}", rotation);
@@ -334,7 +334,7 @@ mod tests {
     #[test]
     fn test_bounding_box_size_square_45_deg() {
         let size = Size::new(100, 100);
-        let bb_width = (2.0f64 * size.width.0.powf(2.0)).sqrt();
+        let bb_width = (2.0f32 * size.width.0.powf(2.0)).sqrt();
         let bb_size = Size::new(bb_width, bb_width);
         for rotation in &[-135.0, -45.0, 45.0, 135.0] {
             println!("rotation = {}", rotation);
@@ -351,10 +351,10 @@ mod tests {
     fn test_bounding_box_position_square_30_deg() {
         let size = Size::new(100, 100);
         let bb_width =
-            30.0f64.to_radians().sin() * size.width.0 + 60.0f64.to_radians().sin() * size.height.0;
+            30.0f32.to_radians().sin() * size.width.0 + 60.0f32.to_radians().sin() * size.height.0;
 
-        let w30 = 30.0f64.to_radians().cos() * size.width.0;
-        let w60 = 60.0f64.to_radians().cos() * size.width.0;
+        let w30 = 30.0f32.to_radians().cos() * size.width.0;
+        let w60 = 60.0f32.to_radians().cos() * size.width.0;
 
         test_position(size, -150.0, Position::new(w30, 0));
         test_position(size, -120.0, Position::new(w60, 0));
@@ -369,7 +369,7 @@ mod tests {
     #[test]
     fn test_bounding_box_position_square_45_deg() {
         let size = Size::new(100, 100);
-        let bb_width = (2.0f64 * size.width.0.powf(2.0)).sqrt();
+        let bb_width = (2.0f32 * size.width.0.powf(2.0)).sqrt();
 
         test_position(size, -135.0, Position::new(bb_width / 2.0, 0));
         test_position(size, -45.0, Position::new(0, bb_width / 2.0));
@@ -401,9 +401,9 @@ mod tests {
     fn test_bounding_box_size_rectangle_30_deg() {
         let size = Size::new(200, 100);
         let bb_width =
-            60.0f64.to_radians().sin() * size.width.0 + 30.0f64.to_radians().sin() * size.height.0;
+            60.0f32.to_radians().sin() * size.width.0 + 30.0f32.to_radians().sin() * size.height.0;
         let bb_height =
-            60.0f64.to_radians().sin() * size.height.0 + 30.0f64.to_radians().sin() * size.width.0;
+            60.0f32.to_radians().sin() * size.height.0 + 30.0f32.to_radians().sin() * size.width.0;
         let bb_size = Size::new(bb_width, bb_height);
         for rotation in &[-150.0, -30.0, 30.0, 150.0] {
             println!("rotation = {}", rotation);
@@ -419,7 +419,7 @@ mod tests {
     #[test]
     fn test_bounding_box_size_rectangle_45_deg() {
         let size = Size::new(200, 100);
-        let bb_width = 45.0f64.to_radians().sin() * (size.width.0 + size.height.0);
+        let bb_width = 45.0f32.to_radians().sin() * (size.width.0 + size.height.0);
         let bb_size = Size::new(bb_width, bb_width);
         for rotation in &[-135.0, -45.0, 45.0, 135.0] {
             println!("rotation = {}", rotation);
@@ -436,9 +436,9 @@ mod tests {
     fn test_bounding_box_size_rectangle_60_deg() {
         let size = Size::new(200, 100);
         let bb_width =
-            30.0f64.to_radians().sin() * size.width.0 + 60.0f64.to_radians().sin() * size.height.0;
+            30.0f32.to_radians().sin() * size.width.0 + 60.0f32.to_radians().sin() * size.height.0;
         let bb_height =
-            30.0f64.to_radians().sin() * size.height.0 + 60.0f64.to_radians().sin() * size.width.0;
+            30.0f32.to_radians().sin() * size.height.0 + 60.0f32.to_radians().sin() * size.width.0;
         let bb_size = Size::new(bb_width, bb_height);
         for rotation in &[-120.0, -60.0, 60.0, 120.0] {
             println!("rotation = {}", rotation);
@@ -470,14 +470,14 @@ mod tests {
     fn test_bounding_box_position_rectangle_30_deg() {
         let size = Size::new(200, 100);
         let bb_width =
-            30.0f64.to_radians().sin() * size.width.0 + 60.0f64.to_radians().sin() * size.height.0;
+            30.0f32.to_radians().sin() * size.width.0 + 60.0f32.to_radians().sin() * size.height.0;
         let bb_height =
-            30.0f64.to_radians().sin() * size.height.0 + 60.0f64.to_radians().sin() * size.width.0;
+            30.0f32.to_radians().sin() * size.height.0 + 60.0f32.to_radians().sin() * size.width.0;
 
-        let h30 = 30.0f64.to_radians().cos() * size.height.0;
-        let h60 = 60.0f64.to_radians().cos() * size.height.0;
-        let w30 = 30.0f64.to_radians().cos() * size.width.0;
-        let w60 = 60.0f64.to_radians().cos() * size.width.0;
+        let h30 = 30.0f32.to_radians().cos() * size.height.0;
+        let h60 = 60.0f32.to_radians().cos() * size.height.0;
+        let w30 = 30.0f32.to_radians().cos() * size.width.0;
+        let w60 = 60.0f32.to_radians().cos() * size.width.0;
 
         test_position(size, -150.0, Position::new(w30, 0));
         test_position(size, -120.0, Position::new(w60, 0));
@@ -492,7 +492,7 @@ mod tests {
     #[test]
     fn test_bounding_box_position_rectangle_45_deg() {
         let size = Size::new(200, 100);
-        let bb_width = 45.0f64.to_radians().sin() * (size.width.0 + size.height.0);
+        let bb_width = 45.0f32.to_radians().sin() * (size.width.0 + size.height.0);
 
         test_position(size, -135.0, Position::new(2.0 * bb_width / 3.0, 0));
         test_position(size, -45.0, Position::new(0, bb_width / 3.0));

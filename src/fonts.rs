@@ -351,9 +351,9 @@ impl Font {
             idx,
             is_builtin,
             scale,
-            line_height: printpdf::Pt(f64::from(line_height)).into(),
-            glyph_height: printpdf::Pt(f64::from(glyph_height)).into(),
-            ascent: printpdf::Pt(f64::from(ascent)).into(),
+            line_height: printpdf::Pt(line_height).into(),
+            glyph_height: printpdf::Pt(glyph_height).into(),
+            ascent: printpdf::Pt(ascent).into(),
         }
     }
 
@@ -364,17 +364,17 @@ impl Font {
 
     /// Returns the line height for text with this font and the given font size.
     pub fn get_line_height(&self, font_size: u8) -> Mm {
-        self.line_height * f64::from(font_size)
+        self.line_height * f32::from(font_size)
     }
 
     /// Returns the glyph height for text with this font and the given font size.
     pub fn glyph_height(&self, font_size: u8) -> Mm {
-        self.glyph_height * f64::from(font_size)
+        self.glyph_height * f32::from(font_size)
     }
 
     /// Returns the ascent for text with this font and the given font size.
     pub fn ascent(&self, font_size: u8) -> Mm {
-        self.ascent * f64::from(font_size)
+        self.ascent * f32::from(font_size)
     }
 
     /// Returns the width of a character with this font and the given font size.
@@ -384,9 +384,7 @@ impl Font {
     /// [`FontCache`]: struct.FontCache.html
     pub fn char_width(&self, font_cache: &FontCache, c: char, font_size: u8) -> Mm {
         let advance_width = self.char_h_metrics(font_cache, c).advance_width;
-        Mm::from(printpdf::Pt(f64::from(
-            advance_width * f32::from(font_size),
-        )))
+        Mm::from(printpdf::Pt(advance_width * f32::from(font_size)))
     }
 
     /// Returns the width of the empty space between the origin of the glyph bounding
@@ -397,9 +395,7 @@ impl Font {
     /// [`FontCache`]: struct.FontCache.html
     pub fn char_left_side_bearing(&self, font_cache: &FontCache, c: char, font_size: u8) -> Mm {
         let left_side_bearing = self.char_h_metrics(font_cache, c).left_side_bearing;
-        Mm::from(printpdf::Pt(f64::from(
-            left_side_bearing * f32::from(font_size),
-        )))
+        Mm::from(printpdf::Pt(left_side_bearing * f32::from(font_size)))
     }
 
     fn char_h_metrics(&self, font_cache: &FontCache, c: char) -> rusttype::HMetrics {
@@ -420,13 +416,13 @@ impl Font {
             .get_rt_font(*self)
             .glyphs_for(s.chars())
             .map(|g| g.scaled(self.scale).h_metrics().advance_width)
-            .map(|w| Mm::from(printpdf::Pt(f64::from(w * f32::from(font_size)))))
+            .map(|w| Mm::from(printpdf::Pt(w * f32::from(font_size))))
             .sum();
         let kerning_width: Mm = self
             .kerning(font_cache, s.chars())
             .into_iter()
             .map(|val| val * f32::from(font_size))
-            .map(|val| Mm::from(printpdf::Pt(f64::from(val))))
+            .map(|val| Mm::from(printpdf::Pt(val)))
             .sum();
         str_width + kerning_width
     }
@@ -468,16 +464,16 @@ impl Font {
     {
         let font = font_cache.get_rt_font(*self);
         font.glyphs_for(iter.into_iter())
-            .map(|g| g.id().0 as u16)
+            .map(|g| g.id().0)
             .collect()
     }
 
     /// Calculate the metrics of a given font size for this font.
     pub fn metrics(&self, font_size: u8) -> Metrics {
         Metrics::new(
-            self.line_height * f64::from(font_size),
-            self.glyph_height * f64::from(font_size),
-            self.ascent * f64::from(font_size),
+            self.line_height * f32::from(font_size),
+            self.glyph_height * f32::from(font_size),
+            self.ascent * f32::from(font_size),
         )
     }
 }
@@ -490,7 +486,7 @@ fn from_file(
 ) -> Result<FontData, Error> {
     let builtin = builtin.map(|b| b.style(style));
     FontData::load(
-        &dir.as_ref().join(format!("{}-{}.ttf", name, style)),
+        dir.as_ref().join(format!("{}-{}.ttf", name, style)),
         builtin,
     )
 }

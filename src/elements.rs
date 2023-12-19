@@ -421,16 +421,16 @@ impl<T: Into<StyledString>> iter::FromIterator<T> for Paragraph {
 ///
 /// ```
 /// // Draws 5 empty lines (calculating the line height using the current style)
-/// let b = rckive_genpdf::elements::Break::new(5);
+/// let b = rckive_genpdf::elements::Break::new(5.);
 /// ```
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Break {
-    lines: f64,
+    lines: f32,
 }
 
 impl Break {
     /// Creates a new break with the given number of lines.
-    pub fn new(lines: impl Into<f64>) -> Break {
+    pub fn new(lines: impl Into<f32>) -> Break {
         Break {
             lines: lines.into(),
         }

@@ -43,7 +43,7 @@ fn main() {
             layout.push(
                 elements::Paragraph::new(format!("Page {}", page)).aligned(Alignment::Center),
             );
-            layout.push(elements::Break::new(1));
+            layout.push(elements::Break::new(1.));
         }
         layout.styled(style::Style::new().with_font_size(10))
     });
@@ -67,7 +67,7 @@ fn main() {
     );
 
     // adding a break to avoid the image posted above with an "absolute image.
-    doc.push(elements::Break::new(2));
+    doc.push(elements::Break::new(2.));
 
     // IMAGE FILE TYPE HANDLING:
     doc.push(elements::Paragraph::new(
@@ -104,7 +104,7 @@ fn main() {
     }
     doc.push(img_table);
 
-    doc.push(elements::Break::new(2));
+    doc.push(elements::Break::new(2.));
     doc.push(elements::Paragraph::new(
         "Table with image rotation/offset calculation tests:",
     ));
@@ -119,9 +119,9 @@ fn main() {
         vec![Box::new(elements::Text::new("Negative").padded(1))];
 
     let img = elements::Image::from_path(IMAGE_PATH_JPG).expect("invalid image");
-    for rot in &[30, 45, 90, 120, 150, 180] {
+    for rot in &[30., 45., 90., 120., 150., 180.] {
         heading_row.push(Box::new(elements::Text::new(format!("{}°", rot)).padded(1)));
-        let rot = f64::from(*rot);
+        let rot = *rot;
         pos_row.push(Box::new(
             img.clone()
                 .with_clockwise_rotation(rot)

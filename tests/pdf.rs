@@ -25,8 +25,8 @@ mod tests {
 
         let mut doc = rckive_genpdf::Document::new(default_font);
         doc.set_minimal_conformance();
-        doc.set_creation_date(printpdf::OffsetDateTime::unix_epoch());
-        doc.set_modification_date(printpdf::OffsetDateTime::unix_epoch());
+        doc.set_creation_date(printpdf::OffsetDateTime::UNIX_EPOCH);
+        doc.set_modification_date(printpdf::OffsetDateTime::UNIX_EPOCH);
         doc
     }
 
