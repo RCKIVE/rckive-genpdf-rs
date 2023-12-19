@@ -103,7 +103,7 @@ jobs:
           DEST_DIR: pdf-compare/${{ github.sha }}
 
       - name: Save PDFs and diffs as artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: test-pdfs
