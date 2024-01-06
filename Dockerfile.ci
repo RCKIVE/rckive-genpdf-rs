@@ -19,7 +19,7 @@ WORKDIR /usr/src/app
 # renovate: datasource=github-releases depName=ImageMagick/ImageMagick
 ENV MAGICK_VERSION 7.1.0-62
 # renovate: datasource=github-releases depName=SoftCreatR/imei
-ENV IMEI_VERSION 6.10.5
+ENV IMEI_VERSION 6.11.0
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
