@@ -8,7 +8,7 @@ jobs:
     name: cargo check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -30,7 +30,7 @@ jobs:
     name: cargo fmt && clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -60,7 +60,7 @@ jobs:
       image: ghcr.io/rckive/rckive-genpdf-rs-ci:renovate-printpdf-0.x
       options: --security-opt seccomp=unconfined
     steps:
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
