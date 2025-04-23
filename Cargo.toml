@@ -21,7 +21,7 @@ name = "images"
 required-features = ["images"]
 
 [dependencies]
-derive_more = { version = "0.99", default-features = false, features = [
+derive_more = { version = "0.99.20", default-features = false, features = [
     "add",
     "add_assign",
     "from",
