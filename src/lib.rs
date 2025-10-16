@@ -337,7 +337,8 @@ impl Rotation {
         if self.degrees != 0.0 {
             Some(self.degrees)
         } else {
-            None
+            //None
+            Some(0.0)
         }
     }
 }
@@ -743,6 +744,13 @@ impl Document {
             .with_context(|| format!("Could not create file {}", path.display()))?;
         self.render(file)
     }
+    
+    pub fn render_to_base64(self) -> Result<String, error::Error> {
+        let mut buffer = Vec::new(); 
+        self.render(&mut buffer)?; 
+        let base64_string = base64::encode(&buffer);
+        Ok(base64_string)
+    }    
 }
 
 impl<E: elements::IntoBoxedElement> std::iter::Extend<E> for Document {

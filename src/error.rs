@@ -129,7 +129,9 @@ impl From<printpdf::Error> for ErrorKind {
             printpdf::Error::Io(err) => err.into(),
             printpdf::Error::Pdf(err) => err.into(),
             printpdf::Error::Index(err) => err.into(),
-            printpdf::Error::FaceParsing(err) => err.into(),
+            printpdf::Error::FaceParsing(_) => todo!(),
+
+            // printpdf::Error::FaceParsing(err) => err.into(),
         }
     }
 }

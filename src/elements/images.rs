@@ -1,8 +1,9 @@
 //! Image support for rckive_genpdf-rs.
 
 use std::path;
-
+use base64::{engine::general_purpose, Engine as _};
 use printpdf::image_crate::GenericImageView;
+use printpdf::image_crate::load_from_memory;
 
 use crate::error::{Context as _, Error, ErrorKind};
 use crate::{render, style};
@@ -63,12 +64,12 @@ pub struct Image {
 impl Image {
     /// Creates a new image from an already loaded image.
     pub fn from_dynamic_image(data: printpdf::image_crate::DynamicImage) -> Result<Self, Error> {
-        if data.color().has_alpha() {
-            Err(Error::new(
-                "Images with an alpha channel are not supported",
-                ErrorKind::InvalidData,
-            ))
-        } else {
+        // if data.color().has_alpha() {
+        //     Err(Error::new(
+        //         "Images with an alpha channel are not supported",
+        //         ErrorKind::InvalidData,
+        //     ))
+        // } else {
             Ok(Image {
                 data,
                 alignment: Alignment::default(),
@@ -77,6 +78,36 @@ impl Image {
                 rotation: Rotation::default(),
                 dpi: None,
             })
+        // }
+    }
+    
+    pub fn from_base64(base64_string: &str) -> Result<Self, Error> {        
+        let raw_base64_content = if base64_string.starts_with("data:image/") {
+            let comma_index = base64_string
+                .find(',')
+                .ok_or("Invalid data URI: missing comma").expect("Failed ");
+            &base64_string[comma_index + 1..]
+        } else {
+            base64_string
+        };
+        match general_purpose::STANDARD.decode(raw_base64_content) {
+            Ok(decoded_bytes) => {
+                 let data = printpdf::image_crate::load_from_memory(&decoded_bytes).expect("Failed load");
+                 return Ok(Image {
+                        data,
+                        alignment: Alignment::default(),
+                        position: None,
+                        scale: Scale::default(),
+                        rotation: Rotation::default(),
+                        dpi: None,
+                    })                
+            }
+            Err(error) => {
+                return Err(Error::new(
+                        "Error decode Base64",
+                        ErrorKind::InvalidData,
+                    ))                
+            }
         }
     }
 
